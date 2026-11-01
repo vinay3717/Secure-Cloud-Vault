@@ -29,6 +29,8 @@
    - 3.5 [Analytical Reports & Executive Decision Dashboard](#35-analytical-reports--executive-decision-dashboard)
 5. [4. Comparative Analysis of Cloud Service Delivery Models](#4-comparative-analysis-of-cloud-service-delivery-models)
 6. [5. Implementation Screenshots & Operational Evidence](#5-implementation-screenshots--operational-evidence)
+   - 5.1 [Project #9: Secure Cloud Vault & HDFS Interface Artifacts](#51-project-9-secure-cloud-vault--hdfs-interface-artifacts)
+   - 5.2 [Project #8: Salesforce Cloud Admissions Console Artifacts](#52-project-8-salesforce-cloud-admissions-console-artifacts)
 7. [6. Engineering Challenges, Troubleshooting & Gotchas](#6-engineering-challenges-troubleshooting--gotchas)
 8. [7. Conclusion & Future Enhancements](#7-conclusion--future-enhancements)
 9. [8. References & Technical Specifications](#8-references--technical-specifications)
@@ -280,19 +282,93 @@ Business intelligence is delivered via two custom reports and an executive dashb
 ---
 
 ## 5. Implementation Screenshots & Operational Evidence
-<!-- System screenshots and execution artifacts will be linked and inserted here in Step 4 -->
+
+### 5.1 Project #9: Secure Cloud Vault & HDFS Interface Artifacts
+
+#### Figure 1: Secure Cloud Vault SaaS Web Console
+*Glassmorphism dashboard illustrating real-time HDFS connectivity, active file inventory, and upload interface.*
+![Secure Cloud Vault Dashboard](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/01_saas_dashboard.png)
+
+#### Figure 2: Interactive 2 MiB Chunk Inspection Drawer
+*Inspection drawer revealing chunk index partition mapping, raw vs. encrypted byte sizes, and HDFS block paths.*
+![Chunk Partition Inspection](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/02_chunk_inspection.png)
+
+#### Figure 3: Apache Hadoop NameNode Cluster Health UI
+*Hadoop 3.3.6 Web UI on port 9870 displaying cluster status, heap usage, and active DataNodes.*
+![Hadoop NameNode Health](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/03_hdfs_webui.png)
+
+#### Figure 4: HDFS Web Directory Explorer (`/saas_cloud`)
+*WebHDFS directory browser displaying active UUID-tagged file containers on the distributed filesystem.*
+![HDFS File Explorer](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/04_hdfs_file_explorer.png)
+
+---
+
+### 5.2 Project #8: Salesforce Cloud Admissions Console Artifacts
+
+#### Figure 5: Custom Object Schema (`Student_Inquiry__c`)
+*Salesforce Object Manager interface detailing custom fields, formulas, and required data constraints.*
+![Custom Object Schema](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/01_custom_object_schema.png)
+
+#### Figure 6: Lightning Record Detail View with Dynamic Path
+*Student record interface showcasing the interactive stage path (`Enrolled`), highlights summary, and profile details.*
+![Lightning Record Detail View](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/02_record_detail_view.png)
+
+#### Figure 7: Admissions Pipeline Summary Report
+*Standardized analytical report grouped by inquiry lifecycle status and academic program.*
+![Admissions Pipeline Report](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/03_pipeline_report.png)
+
+#### Figure 8: Admissions Operations Executive Dashboard
+*Real-time executive dashboard featuring conversion funnels, degree program distribution donut charts, and intake KPI metrics.*
+![Executive Admissions Dashboard](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/04_executive_dashboard.png)
 
 ---
 
 ## 6. Engineering Challenges, Troubleshooting & Gotchas
-<!-- Engineering solutions, WSL systemd lifecycle, and WebHDFS hostname resolution -->
+
+During the implementation of both cloud projects, three critical engineering hurdles were diagnosed and resolved:
+
+### 1. WSL2 Systemd Daemon Lifecycle Management
+- **Symptom**: When `start-dfs.sh` was executed directly in transient WSL sessions, the NameNode and DataNode daemons shut down after a brief window with signal `SIGHUP` / `SIGTERM`.
+- **Root Cause**: WSL2 automatically reclaims child process groups when transient non-interactive terminal sessions terminate.
+- **Resolution**: Implemented a native systemd unit service (`/etc/systemd/system/hadoop-hdfs.service`) with `Type=oneshot` and `RemainAfterExit=yes`. This enabled persistent daemon operation across background sessions and automatic startup upon VM invocation.
+
+### 2. WebHDFS 307 Redirect & Cross-Platform Hostname Resolution
+- **Symptom**: Windows applications querying WebHDFS NameNode (`http://localhost:9870/webhdfs/v1/...`) threw `NameResolutionError: Failed to resolve 'laptop-mlc7cll4.localdomain'`.
+- **Root Cause**: During write operations, the HDFS NameNode returns an HTTP 307 redirect instructing the client to contact the DataNode by its canonical Linux hostname (`laptop-mlc7cll4.localdomain`). While resolvable inside Ubuntu, the Windows DNS resolver does not resolve internal WSL localdomain addresses.
+- **Resolution**: Updated `hdfs-site.xml` with:
+  ```xml
+  <property>
+      <name>dfs.datanode.hostname</name>
+      <value>localhost</value>
+  </property>
+  ```
+  This enforced that WebHDFS returns `http://localhost:9864` on redirects, making the endpoint universally routable across both Windows host scripts and internal WSL processes.
+
+### 3. Zero-Knowledge In-Memory Reassembly
+- **Symptom**: Large file downloads risked exhausting local disk space or leaking temporary unencrypted files.
+- **Resolution**: The download controller was architected to stream encrypted chunks directly into memory, decrypt each sequentially via Fernet, and stream directly into Flask's `send_file` using an in-memory buffer (`io.BytesIO`), leaving no unencrypted residue on disk.
 
 ---
 
 ## 7. Conclusion & Future Enhancements
-<!-- Conclusions and future project enhancements -->
+
+This practical work demonstrated the concrete engineering requirements for building and operating secure cloud systems across both infrastructure and platform abstractions:
+- In **Project #9**, we demonstrated that a robust, zero-trust cloud storage service can be established locally over distributed nodes by combining symmetric block ciphering with HDFS chunk partitioning.
+- In **Project #8**, we showed how enterprise PaaS dramatically accelerates business application development through declarative data modeling, automated business rules, and pre-built analytical reporting engines.
+
+### Future Enhancements
+1. **Physical Multi-Node Expansion**: Scaling the HDFS cluster across multiple physical nodes or Raspberry Pi edge boards with a replication factor of $3$.
+2. **Asymmetric Key Exchange**: Implementing RSA / hybrid cryptography so that chunk keys are encrypted under recipient public keys.
+3. **Salesforce Experience Cloud Integration**: Publishing a public-facing Community portal enabling prospective students to directly submit their own applications and view admissions status in real time.
 
 ---
 
 ## 8. References & Technical Specifications
-<!-- Citations, RFCs, and documentation links -->
+
+1. **Apache Software Foundation**. *Hadoop Distributed File System (HDFS) Architecture Guide*, Hadoop 3.3.6 Documentation, 2023. [https://hadoop.apache.org/docs/r3.3.6/](https://hadoop.apache.org/docs/r3.3.6/)
+2. **Apache Software Foundation**. *WebHDFS REST API Specification*, Hadoop 3.3.6 Documentation, 2023.
+3. **National Institute of Standards and Technology (NIST)**. *FIPS PUB 197: Advanced Encryption Standard (AES)*, U.S. Department of Commerce, 2001.
+4. **Krawczyk, H., Bellare, M., & Canetti, R.** *RFC 2104: HMAC: Keyed-Hashing for Message Authentication*, Internet Engineering Task Force (IETF), 1997.
+5. **Python Cryptography Authority**. *Fernet Symmetric Encryption Specification*, 2024. [https://cryptography.io/en/latest/fernet/](https://cryptography.io/en/latest/fernet/)
+6. **Salesforce Inc.** *Salesforce Lightning Platform Fundamentals: An Introduction to Customizing Salesforce*, Salesforce Documentation, 2026.
+7. **Salesforce Inc.** *Salesforce Lightning Design System (SLDS)*, 2026. [https://www.lightningdesignsystem.com/](https://www.lightningdesignsystem.com/)
