@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cloud Computing Laboratory Report</title>
+<style>
+@page {
+    size: A4;
+    margin: 20mm 15mm 20mm 15mm;
+    @bottom-center {
+        content: "Page " counter(page);
+        font-size: 9pt;
+        color: #718096;
+    }
+}
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    color: #1a202c;
+    line-height: 1.6;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    font-size: 20pt;
+    color: #1a365d;
+    border-bottom: 2px solid #2b6cb0;
+    padding-bottom: 6px;
+    margin-top: 0;
+}
+h2 {
+    font-size: 15pt;
+    color: #2b6cb0;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-top: 24pt;
+    page-break-after: avoid;
+}
+h3 {
+    font-size: 12pt;
+    color: #2d3748;
+    margin-top: 16pt;
+    page-break-after: avoid;
+}
+h4 {
+    font-size: 10.5pt;
+    color: #4a5568;
+    margin-top: 12pt;
+    page-break-after: avoid;
+}
+p, li {
+    text-align: justify;
+    color: #2d3748;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14pt 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+}
+th, td {
+    border: 1px solid #cbd5e0;
+    padding: 6pt 8pt;
+    text-align: left;
+}
+th {
+    background-color: #ebf8ff;
+    color: #2b6cb0;
+    font-weight: 600;
+}
+tr:nth-child(even) {
+    background-color: #f7fafc;
+}
+pre {
+    background: #edf2f7;
+    border-left: 4px solid #3182ce;
+    padding: 8pt 10pt;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    page-break-inside: avoid;
+    border-radius: 3px;
+}
+code {
+    font-family: 'Courier New', Courier, monospace;
+    background: #edf2f7;
+    padding: 1pt 3pt;
+    border-radius: 2px;
+    font-size: 9pt;
+}
+img {
+    max-width: 95%;
+    height: auto;
+    display: block;
+    margin: 10pt auto;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    page-break-inside: avoid;
+}
+hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 16pt 0;
+}
+blockquote {
+    border-left: 4px solid #4299e1;
+    background: #ebf8ff;
+    margin: 10pt 0;
+    padding: 6pt 12pt;
+    font-style: italic;
+}
+</style>
+</head>
+<body>
+<h1 id="cloud-computing-laboratory-mini-projects-final-technical-report">Cloud Computing Laboratory Mini-Projects: Final Technical Report</h1>
+<p><strong>Practical #8 (Salesforce Cloud Application) &amp; Practical #9 (Private LAN SaaS over HDFS)</strong></p>
+<hr />
+<h2 id="academic-metadata">Academic Metadata</h2>
+<ul>
+<li><strong>Course</strong>: Cloud Computing Laboratory</li>
+<li><strong>Author / Student Name</strong>: Vinay Umesh Gole</li>
+<li><strong>Repository</strong>: <a href="https://github.com/vinay3717/Secure-Cloud-Vault">Secure-Cloud-Vault</a></li>
+<li><strong>Academic Year</strong>: 2026–2027</li>
+</ul>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#abstract">Abstract</a></li>
+<li><a href="#1-introduction--cloud-architecture-context">1. Introduction &amp; Cloud Architecture Context</a></li>
+<li><a href="#2-project-9-private-lan-saas-cloud-storage-over-hdfs">2. Project #9: Private LAN SaaS Cloud Storage over HDFS</a></li>
+<li>2.1 <a href="#21-problem-statement--scope">Problem Statement &amp; Scope</a></li>
+<li>2.2 <a href="#22-system-architecture--data-flow">System Architecture &amp; Data Flow</a></li>
+<li>2.3 <a href="#23-cryptographic-security-model">Cryptographic Security Model (Fernet &amp; Symmetric Encryption)</a></li>
+<li>2.4 <a href="#24-2-mib-partitioning--webhdfs-distribution-pipeline">2 MiB Partitioning &amp; WebHDFS Distribution Pipeline</a></li>
+<li>2.5 <a href="#25-implementation-details">Implementation Details (Flask Controller &amp; Glassmorphism UI)</a></li>
+<li>2.6 <a href="#26-verification-automated-testing--roundtrip-results">Verification, Automated Testing &amp; Roundtrip Results</a></li>
+<li><a href="#3-project-8-custom-admissions-application-on-salesforce-cloud-platform">3. Project #8: Custom Admissions Application on Salesforce Cloud Platform</a></li>
+<li>3.1 <a href="#31-problem-statement--educational-domain-overview">Problem Statement &amp; Educational Domain Overview</a></li>
+<li>3.2 <a href="#32-data-architecture--object-schema">Data Architecture &amp; Object Schema (Student_Inquiry__c)</a></li>
+<li>3.3 <a href="#33-lightning-app-architecture--dynamic-path-assistant">Lightning App Architecture &amp; Dynamic Path Assistant</a></li>
+<li>3.4 <a href="#34-business-logic-automation--validation-rules">Business Logic, Automation &amp; Validation Rules</a></li>
+<li>3.5 <a href="#35-analytical-reports--executive-decision-dashboard">Analytical Reports &amp; Executive Decision Dashboard</a></li>
+<li><a href="#4-comparative-analysis-of-cloud-service-delivery-models">4. Comparative Analysis of Cloud Service Delivery Models</a></li>
+<li><a href="#5-implementation-screenshots--operational-evidence">5. Implementation Screenshots &amp; Operational Evidence</a></li>
+<li>5.1 <a href="#51-project-9-secure-cloud-vault--hdfs-interface-artifacts">Project #9: Secure Cloud Vault &amp; HDFS Interface Artifacts</a></li>
+<li>5.2 <a href="#52-project-8-salesforce-cloud-admissions-console-artifacts">Project #8: Salesforce Cloud Admissions Console Artifacts</a></li>
+<li><a href="#6-engineering-challenges-troubleshooting--gotchas">6. Engineering Challenges, Troubleshooting &amp; Gotchas</a></li>
+<li><a href="#7-conclusion--future-enhancements">7. Conclusion &amp; Future Enhancements</a></li>
+<li><a href="#8-references--technical-specifications">8. References &amp; Technical Specifications</a></li>
+</ol>
+<hr />
+<h2 id="abstract">Abstract</h2>
+<p>Modern enterprise computing increasingly relies on hybrid paradigms that combine low-level distributed infrastructure with high-level software-as-a-service platforms. This technical report comprehensively documents the architecture, implementation, and empirical verification of two complementary cloud practical projects:</p>
+<ol>
+<li><strong>Project #9 — Private LAN SaaS Cloud Storage over Apache HDFS (<code>Secure Cloud Vault</code>)</strong>: An end-to-end distributed storage system constructed using Python Flask and Apache Hadoop HDFS. Files uploaded via a web console are streamed, partitioned into fixed 2 MiB chunks, individually encrypted using authenticated symmetric cryptography (Fernet AES-128-CBC + HMAC-SHA256), and distributed into HDFS data blocks via WebHDFS. Retrieval is achieved by fetching encrypted blocks sequentially, authenticating and decrypting each segment in memory, and reassembling the exact bitstream for download without intermediate plaintext storage on disk.</li>
+<li><strong>Project #8 — Custom Application on Salesforce Cloud Platform (<code>Admissions Cloud Management</code>)</strong>: An enterprise-grade cloud CRM solution engineered on Salesforce Lightning Experience. It models the complete lifecycle of student recruitment and program enrollment using custom objects (<code>Student_Inquiry__c</code>), automated formula fields, validation rules, Lightning Path stage trackers, summary reports, and real-time executive management dashboards.</li>
+</ol>
+<p>Both systems were developed, automated, and verified locally using WSL2 (Ubuntu 26.04 LTS) and Windows 11 host environments.</p>
+<hr />
+<h2 id="1-introduction-cloud-architecture-context">1. Introduction &amp; Cloud Architecture Context</h2>
+<p>Cloud computing has revolutionized digital infrastructure by offering elastic, on-demand compute, storage, and application platforms. Within the National Institute of Standards and Technology (NIST) cloud framework, services are classified into three primary delivery tiers:
+- <strong>Infrastructure as a Service (IaaS)</strong>: Provisioning fundamental compute, networking, and block/object storage abstractions (exemplified by HDFS nodes and raw Linux instances).
+- <strong>Platform as a Service (PaaS)</strong>: Providing managed application runtime environments, database engines, and development frameworks (exemplified by Salesforce Force.com platform and Lightning App Builder).
+- <strong>Software as a Service (SaaS)</strong>: Delivering fully managed, end-user applications hosted over network protocols without client-side management of lower tiers.</p>
+<p><strong>Project #9</strong> demonstrates the bridge between IaaS and SaaS by building a secure, private cloud storage service on top of an underlying distributed cluster filesystem. Conversely, <strong>Project #8</strong> explores enterprise multi-tenant PaaS by configuring and automating domain-specific business processes on Salesforce.</p>
+<hr />
+<h2 id="2-project-9-private-lan-saas-cloud-storage-over-hdfs">2. Project #9: Private LAN SaaS Cloud Storage over HDFS</h2>
+<h3 id="21-problem-statement-scope">2.1 Problem Statement &amp; Scope</h3>
+<p>Standard Network Attached Storage (NAS) and traditional web file managers suffer from three key deficiencies in untrusted or distributed environments:
+1. <strong>Single Points of Failure &amp; Inflexible Scaling</strong>: Monolithic disks do not scale horizontally across physical drives or network nodes.
+2. <strong>Plaintext Vulnerability at Rest</strong>: Files stored directly on storage nodes are susceptible to unauthorized physical or administrative inspection.
+3. <strong>Bandwidth Inefficiencies with Large Files</strong>: Transmitting monolithic files as single streams creates memory bottlenecks and lacks fault tolerance during network interruptions.</p>
+<p><strong>Project #9</strong> addresses these challenges by developing a zero-trust, chunk-partitioned SaaS storage layer hosted on a local area network (LAN) backed by Apache Hadoop Distributed File System (HDFS).</p>
+<hr />
+<h3 id="22-system-architecture-data-flow">2.2 System Architecture &amp; Data Flow</h3>
+<p>The architecture operates on a decoupled multi-tier topology:
+1. <strong>Client Tier</strong>: Web browser accessing the modern glassmorphism UI via HTTP port 5000.
+2. <strong>Application Tier (Flask Controller)</strong>: Acts as the storage gateway, performing cryptographic key management, streaming file ingestion, chunk boundary division, and metadata persistence.
+3. <strong>Cluster Storage Tier (Apache Hadoop HDFS)</strong>:
+   - <strong>NameNode (Daemon)</strong>: Listens on TCP port 9000 (RPC) and HTTP port 9870 (WebHDFS), maintaining namespace metadata and chunk directory mapping.
+   - <strong>DataNode (Daemon)</strong>: Listens on TCP port 9866 (data streaming) and HTTP port 9864 (WebHDFS chunk transfer), writing and replicating blocks to underlying storage.
+   - <strong>Secondary NameNode</strong>: Consolidates <code>fsimage</code> snapshots and transactional <code>edits</code> logs.</p>
+<pre><code>+----------------------------------------------------------------------------------+
+|                              CLIENT WEB BROWSER                                  |
+|         (Upload Multipart / Download Stream / Chunk Visualizer Inspector)        |
++---------------------------------------+------------------------------------------+
+                                        | HTTP :5000
+                                        v
++----------------------------------------------------------------------------------+
+|                   FLASK APPLICATION GATEWAY (saas_cloud/app.py)                   |
+|  +----------------------------------------------------------------------------+  |
+|  | Chunking Engine: 2 MiB Sliding Window Partitioning                         |  |
+|  | Cryptographic Engine: Fernet (AES-128-CBC + PKCS7 + HMAC-SHA256 Auth)      |  |
+|  | Local Metadata Registry: files.json (UUID, Chunks, Offsets, Raw/Enc Sizes) |  |
+|  | Secret Key Vault: secret.key &amp; flask-secret.key (Ignored from Versioning)  |  |
+|  +-------------------------------------+--------------------------------------+  |
++----------------------------------------|-----------------------------------------+
+                                         | WebHDFS REST API (:9870)
+                                         v
++----------------------------------------------------------------------------------+
+|                     HADOOP DISTRIBUTED FILE SYSTEM (HDFS 3.3.6)                  |
+|  +-----------------------------------+   +------------------------------------+  |
+|  | NameNode (Port 9870 / 9000)       |   | DataNode (Port 9864 / 9866)        |  |
+|  | Directory: /saas_cloud/&lt;file_id&gt;/ |&lt;-&gt;| Chunk Blocks: chunk_0.enc,         |  |
+|  | Replication: 1, WebHDFS: Enabled  |   | chunk_1.enc, chunk_2.enc ...       |  |
+|  +-----------------------------------+   +------------------------------------+  |
++----------------------------------------------------------------------------------+
+</code></pre>
+<hr />
+<h3 id="23-cryptographic-security-model">2.3 Cryptographic Security Model</h3>
+<p>To enforce zero-knowledge at rest across the distributed filesystem, encryption occurs <strong>before</strong> data is dispatched to HDFS. The application leverages <strong>Fernet symmetric cryptography</strong> from the Python <code>cryptography</code> library:</p>
+<ul>
+<li><strong>Algorithm</strong>: Advanced Encryption Standard (AES) in Cipher Block Chaining (CBC) mode with a 128-bit key.</li>
+<li><strong>Integrity &amp; Authentication</strong>: Hash-based Message Authentication Code (HMAC) utilizing SHA-256 with an independent 128-bit key (256-bit combined key material).</li>
+<li><strong>Initialization Vector (IV)</strong>: A cryptographically strong, random 128-bit IV generated per chunk via <code>os.urandom()</code>.</li>
+<li><strong>Padding</strong>: PKCS7 padding to align arbitrarily sized chunks with AES 128-bit block boundaries.</li>
+<li><strong>Key Isolation</strong>: The master key is stored in <code>saas_cloud/secret.key</code> with strict permissions and excluded from Git commits via <code>.gitignore</code>. Even an adversary with direct root access to the HDFS DataNode filesystem can inspect only high-entropy encrypted ciphertext blocks.</li>
+</ul>
+<hr />
+<h3 id="24-2-mib-partitioning-webhdfs-distribution-pipeline">2.4 2 MiB Partitioning &amp; WebHDFS Distribution Pipeline</h3>
+<p>When an applicant or administrator uploads a payload:
+1. <strong>Streaming Buffer</strong>: The controller reads the incoming stream in increments of <code>CHUNK_SIZE = 2,097,152</code> bytes (2 MiB).
+2. <strong>Chunk Processing</strong>:
+   $$\text{Total Chunks } N = \left\lceil \frac{\text{File Size}}{\text{CHUNK_SIZE}} \right\rceil$$
+3. <strong>Ciphertext Output</strong>:
+   $$\text{Encrypted Chunk} = \text{FernetEncrypt}_{K}(\text{Chunk}_i)$$
+4. <strong>HDFS Ingestion</strong>: The controller issues an HTTP <code>PUT</code> to:
+   <code>http
+   PUT /webhdfs/v1/saas_cloud/{file_id}/chunk_{i}.enc?op=CREATE&amp;overwrite=true</code>
+   The NameNode redirects (HTTP 307) the upload to the active DataNode (<code>http://localhost:9864</code>), which writes the encrypted block to disk.
+5. <strong>Metadata Registration</strong>: The controller records an entry in <code>files.json</code>:
+   - <code>file_id</code>: Unique UUIDv4 identifier.
+   - <code>filename</code>: Sanitized original name via <code>werkzeug.utils.secure_filename</code>.
+   - <code>size</code>: Exact unencrypted byte count.
+   - <code>chunk_count</code>: $N$.
+   - <code>chunks</code>: List of objects specifying chunk indices, raw bytes, encrypted byte size, and HDFS URIs.
+6. <strong>Reassembly on Download</strong>:
+   - Chunks are fetched sequentially from index $0$ to $N-1$ over WebHDFS.
+   - Each ciphertext is validated and decrypted into memory.
+   - Decrypted bytes are written sequentially into an in-memory <code>io.BytesIO</code> stream.
+   - The verified stream is delivered via HTTP <code>Content-Disposition: attachment</code>.</p>
+<hr />
+<h3 id="25-implementation-details">2.5 Implementation Details</h3>
+<p>The implementation comprises three decoupled components:</p>
+<ol>
+<li><strong><code>saas_cloud/app.py</code></strong>:</li>
+<li>Flask REST controller exposing <code>/</code>, <code>/upload</code>, <code>/download/&lt;file_id&gt;</code>, <code>/delete/&lt;file_id&gt;</code>, and <code>/api/health</code>.</li>
+<li>Dynamically checks cluster health and auto-creates <code>/saas_cloud</code> base directory with 777 permissions if absent.</li>
+<li>Implements automated cleanup: when a file is deleted from the UI, its dedicated HDFS folder <code>/saas_cloud/&lt;file_id&gt;</code> is purged recursively from the cluster.</li>
+<li><strong><code>saas_cloud/templates/index.html</code></strong>:</li>
+<li>Single-page application designed with modern dark-mode glassmorphism (<code>backdrop-filter: blur(16px)</code>).</li>
+<li>Features real-time cluster status badges, storage consumption gauges, drag-and-drop file uploaders, and an interactive <strong>Chunk Inspector Drawer</strong> displaying chunk paths, index orders, and size expansion ratios.</li>
+<li><strong><code>hadoop-config/</code> (<code>core-site.xml</code>, <code>hdfs-site.xml</code>)</strong>:</li>
+<li><code>fs.defaultFS</code>: <code>hdfs://localhost:9000</code></li>
+<li><code>dfs.replication</code>: <code>1</code> (single-node pseudo-distributed)</li>
+<li><code>dfs.webhdfs.enabled</code>: <code>true</code></li>
+<li><code>dfs.datanode.hostname</code>: <code>localhost</code> (ensuring WebHDFS redirect compatibility across Windows and WSL)</li>
+</ol>
+<hr />
+<h3 id="26-verification-automated-testing-roundtrip-results">2.6 Verification, Automated Testing &amp; Roundtrip Results</h3>
+<p>Automated regression and unit test suites were developed in <code>tests/</code>:</p>
+<ol>
+<li><strong><code>tests/test_small_file.py</code></strong>:</li>
+<li>Validated small file uploads (&lt; 2 MiB, 1 chunk).</li>
+<li>Confirmed single-chunk Fernet encryption and verified that the SHA-256 hash of the downloaded file exactly matches the original pre-upload digest.</li>
+<li><strong><code>tests/test_multichunk.py</code></strong>:</li>
+<li>Uploaded a synthetic 5 MiB (5,242,880 bytes) binary payload.</li>
+<li>Verified that the controller generated exactly 3 chunks:<ul>
+<li><code>chunk_0.enc</code>: 2,097,152 bytes raw (2,796,300 bytes encrypted)</li>
+<li><code>chunk_1.enc</code>: 2,097,152 bytes raw (2,796,300 bytes encrypted)</li>
+<li><code>chunk_2.enc</code>: 1,048,576 bytes raw (1,398,156 bytes encrypted)</li>
+</ul>
+</li>
+<li>Verified that sequential reassembly produces an identical 5 MiB stream with zero corrupted bytes and matching SHA-256 digest.</li>
+<li>Test execution completed with <code>Ran 2 tests in 37.738s, OK</code>.</li>
+</ol>
+<hr />
+<h2 id="3-project-8-custom-admissions-application-on-salesforce-cloud-platform">3. Project #8: Custom Admissions Application on Salesforce Cloud Platform</h2>
+<h3 id="31-problem-statement-educational-domain-overview">3.1 Problem Statement &amp; Educational Domain Overview</h3>
+<p>Higher education admissions offices receive thousands of prospective inquiries annually across diverse academic programs. Traditional manual spreadsheets and disconnected email chains create critical operational bottlenecks:
+1. <strong>Unorganized Lead Tracking</strong>: Difficulty in identifying which leads have been contacted versus those awaiting scheduled counseling.
+2. <strong>Manual Evaluation Overhead</strong>: Counselors manually compute qualification thresholds for merit-based scholarships.
+3. <strong>Zero Leadership Visibility</strong>: Executive admissions deans lack real-time visibility into conversion bottlenecks and intake capacity.</p>
+<p><strong>Project #8</strong> resolves these issues by engineering a custom cloud application on the Salesforce Lightning Platform called <strong>Admissions Cloud Management</strong>.</p>
+<hr />
+<h3 id="32-data-architecture-object-schema-student_inquiry__c">3.2 Data Architecture &amp; Object Schema (<code>Student_Inquiry__c</code>)</h3>
+<p>The relational schema is anchored on a custom object <code>Student_Inquiry__c</code>:
+- <strong>Object API Name</strong>: <code>Student_Inquiry__c</code> (Label: <code>Student Inquiry</code>)
+- <strong>Record Identifier</strong>: <code>Name</code> formatted as an Auto Number <code>INQ-{YYYY}-{0000}</code>.
+- <strong>Sharing Model</strong>: Public Read/Write with field-level security managed by profile.</p>
+<h4 id="field-dictionary">Field Dictionary</h4>
+<table>
+<thead>
+<tr>
+<th>Field Label</th>
+<th>API Name</th>
+<th>Type</th>
+<th>Constraints / Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inquiry Number</td>
+<td><code>Name</code></td>
+<td>Auto Number</td>
+<td><code>INQ-{YYYY}-{0000}</code> (Indexed Primary Key)</td>
+</tr>
+<tr>
+<td>First Name</td>
+<td><code>First_Name__c</code></td>
+<td>Text(50)</td>
+<td>Required</td>
+</tr>
+<tr>
+<td>Last Name</td>
+<td><code>Last_Name__c</code></td>
+<td>Text(50)</td>
+<td>Required</td>
+</tr>
+<tr>
+<td>Email Address</td>
+<td><code>Email__c</code></td>
+<td>Email</td>
+<td>Unique, External ID</td>
+</tr>
+<tr>
+<td>Contact Phone</td>
+<td><code>Phone__c</code></td>
+<td>Phone</td>
+<td>Validated format</td>
+</tr>
+<tr>
+<td>City / State</td>
+<td><code>City__c</code> / <code>State__c</code></td>
+<td>Text(60)</td>
+<td>Residential geographic mapping</td>
+</tr>
+<tr>
+<td>Target Degree Program</td>
+<td><code>Target_Degree__c</code></td>
+<td>Picklist</td>
+<td><code>B.Tech Computer Science</code>, <code>B.Tech AI &amp; Data Science</code>, <code>B.Tech Cyber Security</code>, <code>M.Tech Cloud Computing</code>, <code>MCA</code></td>
+</tr>
+<tr>
+<td>Preferred Intake</td>
+<td><code>Preferred_Intake__c</code></td>
+<td>Picklist</td>
+<td><code>Fall 2026</code>, <code>Spring 2027</code>, <code>Fall 2027</code></td>
+</tr>
+<tr>
+<td>High School GPA</td>
+<td><code>High_School_GPA__c</code></td>
+<td>Percent(3, 2)</td>
+<td>Stored as decimal <code>0.00%</code> – <code>100.00%</code></td>
+</tr>
+<tr>
+<td>Entrance Exam Score</td>
+<td><code>Entrance_Score__c</code></td>
+<td>Number(3, 0)</td>
+<td>Range <code>0</code> – <code>100</code></td>
+</tr>
+<tr>
+<td>Merit Scholarship Eligible</td>
+<td><code>Scholarship_Eligible__c</code></td>
+<td>Formula (Checkbox)</td>
+<td><code>IF(High_School_GPA__c &gt;= 0.85, TRUE, FALSE)</code></td>
+</tr>
+<tr>
+<td>Inquiry Status</td>
+<td><code>Inquiry_Status__c</code></td>
+<td>Picklist</td>
+<td><code>New</code>, <code>Contacted</code>, <code>Counseling Scheduled</code>, <code>Application Submitted</code>, <code>Enrolled</code>, <code>Closed - Lost</code></td>
+</tr>
+<tr>
+<td>Application Fee Paid</td>
+<td><code>Application_Fee_Paid__c</code></td>
+<td>Checkbox</td>
+<td>Default: <code>FALSE</code></td>
+</tr>
+<tr>
+<td>Follow-Up Date</td>
+<td><code>Follow_Up_Date__c</code></td>
+<td>Date</td>
+<td>Counselor schedule reminder</td>
+</tr>
+<tr>
+<td>Counselor Notes</td>
+<td><code>Counselor_Notes__c</code></td>
+<td>Long Text(2000)</td>
+<td>Qualitative interaction log</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="33-lightning-app-architecture-dynamic-path-assistant">3.3 Lightning App Architecture &amp; Dynamic Path Assistant</h3>
+<p>The application is deployed as a Lightning App (<code>Admissions_Cloud_Management</code>) incorporating:
+- <strong>Consolidated Navigation Bar</strong>: <code>Home</code>, <code>Student Inquiries</code>, <code>Reports</code>, and <code>Dashboards</code>.
+- <strong>Dynamic Lightning Path</strong>: A visual chevron progress tracker positioned on top of the record page bound to <code>Inquiry_Status__c</code>. Counselors advance inquiries with a single click across the pipeline:
+  $$\text{New} \longrightarrow \text{Contacted} \longrightarrow \text{Counseling Scheduled} \longrightarrow \text{Application Submitted} \longrightarrow \text{Enrolled}$$
+- <strong>Highlights Panel</strong>: Surfaces high-priority fields at a glance (Status pill, Program, GPA percentage, and dynamic Scholarship eligibility checkmark).</p>
+<hr />
+<h3 id="34-business-logic-automation-validation-rules">3.4 Business Logic, Automation &amp; Validation Rules</h3>
+<p>To preserve data integrity, declarative validation rules were implemented:
+1. <strong>VR01 — GPA Bounds Checking (<code>VR_GPA_Percentage_Range</code>)</strong>:
+   <code>sql
+   OR(High_School_GPA__c &lt; 0.0, High_School_GPA__c &gt; 1.0)</code>
+   <em>Prevents counselors from entering out-of-range academic percentages.</em>
+2. <strong>VR02 — Mandatory Contact Channel (<code>VR_Email_Or_Phone_Required</code>)</strong>:
+   <code>sql
+   AND(ISBLANK(Email__c), ISBLANK(Phone__c))</code>
+   <em>Guarantees that an applicant cannot be saved without at least one actionable contact channel.</em>
+3. <strong>Automated Merit Evaluation</strong>: The formula field <code>Scholarship_Eligible__c</code> executes instant client-side and server-side evaluation upon saving or modifying academic GPA, eliminating human miscalculation.</p>
+<hr />
+<h3 id="35-analytical-reports-executive-decision-dashboard">3.5 Analytical Reports &amp; Executive Decision Dashboard</h3>
+<p>Business intelligence is delivered via two custom reports and an executive dashboard:
+- <strong>Pipeline Summary Report</strong>: Groups all 12 student inquiry records by <code>Inquiry_Status__c</code> and summarizes academic credentials across each degree program.
+- <strong>Scholarship Candidate Report</strong>: Filters records where <code>Scholarship_Eligible__c = TRUE</code> (7 out of 12 sample applicants qualifying).
+- <strong>Executive Admissions Dashboard</strong>:
+  1. <em>Funnel Component</em>: Tracks the lead-to-enrollment attrition rate.
+  2. <em>Program Demand Donut Chart</em>: Visualizes application volume by degree (B.Tech CS and AI/Data Science leading demand at 25% each).
+  3. <em>Enrollment Target Gauge</em>: Displays real-time progress toward the 10-student cohort target (currently 30% achieved).
+  4. <em>Scholarship Rate Metric Card</em>: Displays the 58.3% merit qualification rate.</p>
+<hr />
+<h2 id="4-comparative-analysis-of-cloud-service-delivery-models">4. Comparative Analysis of Cloud Service Delivery Models</h2>
+<table>
+<thead>
+<tr>
+<th>Evaluation Criteria</th>
+<th>Project #9: Private LAN SaaS (HDFS + Flask)</th>
+<th>Project #8: Salesforce Enterprise Cloud (PaaS)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cloud Delivery Tier</strong></td>
+<td>Built on <strong>IaaS / Distributed File System</strong></td>
+<td>Built on <strong>Multi-Tenant Enterprise PaaS</strong></td>
+</tr>
+<tr>
+<td><strong>Infrastructure Management</strong></td>
+<td>High: Admin manages OS daemons (NameNode, DataNode, JVM, ports)</td>
+<td>Zero: Salesforce manages all servers, database clustering, and upgrades</td>
+</tr>
+<tr>
+<td><strong>Storage Architecture</strong></td>
+<td>Distributed 2 MiB blocks on physical disk partitions</td>
+<td>Cloud multi-tenant relational database (Oracle / Force.com DB)</td>
+</tr>
+<tr>
+<td><strong>Data Encryption</strong></td>
+<td>Client-side symmetric Fernet (AES-128-CBC + HMAC)</td>
+<td>Platform-managed Transparent Data Encryption (Salesforce Shield / AES-256)</td>
+</tr>
+<tr>
+<td><strong>Customizability &amp; Code</strong></td>
+<td>High: Full source code control in Python, HTML5, Vanilla CSS</td>
+<td>Rapid Low-Code: Declarative schema, formulas, Lightning App Builder</td>
+</tr>
+<tr>
+<td><strong>Scalability Model</strong></td>
+<td>Horizontal scaling via additional HDFS DataNode nodes</td>
+<td>Elastic cloud scaling handled automatically by Salesforce infrastructure</td>
+</tr>
+<tr>
+<td><strong>Network &amp; Access</strong></td>
+<td>LAN / WebHDFS HTTP endpoints (<code>localhost:9870</code>, <code>:5000</code>)</td>
+<td>Global multi-region HTTPS cloud endpoint (<code>login.salesforce.com</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-implementation-screenshots-operational-evidence">5. Implementation Screenshots &amp; Operational Evidence</h2>
+<h3 id="51-project-9-secure-cloud-vault-hdfs-interface-artifacts">5.1 Project #9: Secure Cloud Vault &amp; HDFS Interface Artifacts</h3>
+<h4 id="figure-1-secure-cloud-vault-saas-web-console">Figure 1: Secure Cloud Vault SaaS Web Console</h4>
+<p><em>Glassmorphism dashboard illustrating real-time HDFS connectivity, active file inventory, and upload interface.</em>
+<img alt="Secure Cloud Vault Dashboard" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/01_saas_dashboard.png" /></p>
+<h4 id="figure-2-interactive-2-mib-chunk-inspection-drawer">Figure 2: Interactive 2 MiB Chunk Inspection Drawer</h4>
+<p><em>Inspection drawer revealing chunk index partition mapping, raw vs. encrypted byte sizes, and HDFS block paths.</em>
+<img alt="Chunk Partition Inspection" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/02_chunk_inspection.png" /></p>
+<h4 id="figure-3-apache-hadoop-namenode-cluster-health-ui">Figure 3: Apache Hadoop NameNode Cluster Health UI</h4>
+<p><em>Hadoop 3.3.6 Web UI on port 9870 displaying cluster status, heap usage, and active DataNodes.</em>
+<img alt="Hadoop NameNode Health" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/03_hdfs_webui.png" /></p>
+<h4 id="figure-4-hdfs-web-directory-explorer-saas_cloud">Figure 4: HDFS Web Directory Explorer (<code>/saas_cloud</code>)</h4>
+<p><em>WebHDFS directory browser displaying active UUID-tagged file containers on the distributed filesystem.</em>
+<img alt="HDFS File Explorer" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/04_hdfs_file_explorer.png" /></p>
+<hr />
+<h3 id="52-project-8-salesforce-cloud-admissions-console-artifacts">5.2 Project #8: Salesforce Cloud Admissions Console Artifacts</h3>
+<h4 id="figure-5-custom-object-schema-student_inquiry__c">Figure 5: Custom Object Schema (<code>Student_Inquiry__c</code>)</h4>
+<p><em>Salesforce Object Manager interface detailing custom fields, formulas, and required data constraints.</em>
+<img alt="Custom Object Schema" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/01_custom_object_schema.png" /></p>
+<h4 id="figure-6-lightning-record-detail-view-with-dynamic-path">Figure 6: Lightning Record Detail View with Dynamic Path</h4>
+<p><em>Student record interface showcasing the interactive stage path (<code>Enrolled</code>), highlights summary, and profile details.</em>
+<img alt="Lightning Record Detail View" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/02_record_detail_view.png" /></p>
+<h4 id="figure-7-admissions-pipeline-summary-report">Figure 7: Admissions Pipeline Summary Report</h4>
+<p><em>Standardized analytical report grouped by inquiry lifecycle status and academic program.</em>
+<img alt="Admissions Pipeline Report" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/03_pipeline_report.png" /></p>
+<h4 id="figure-8-admissions-operations-executive-dashboard">Figure 8: Admissions Operations Executive Dashboard</h4>
+<p><em>Real-time executive dashboard featuring conversion funnels, degree program distribution donut charts, and intake KPI metrics.</em>
+<img alt="Executive Admissions Dashboard" src="file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/04_executive_dashboard.png" /></p>
+<hr />
+<h2 id="6-engineering-challenges-troubleshooting-gotchas">6. Engineering Challenges, Troubleshooting &amp; Gotchas</h2>
+<p>During the implementation of both cloud projects, three critical engineering hurdles were diagnosed and resolved:</p>
+<h3 id="1-wsl2-systemd-daemon-lifecycle-management">1. WSL2 Systemd Daemon Lifecycle Management</h3>
+<ul>
+<li><strong>Symptom</strong>: When <code>start-dfs.sh</code> was executed directly in transient WSL sessions, the NameNode and DataNode daemons shut down after a brief window with signal <code>SIGHUP</code> / <code>SIGTERM</code>.</li>
+<li><strong>Root Cause</strong>: WSL2 automatically reclaims child process groups when transient non-interactive terminal sessions terminate.</li>
+<li><strong>Resolution</strong>: Implemented a native systemd unit service (<code>/etc/systemd/system/hadoop-hdfs.service</code>) with <code>Type=oneshot</code> and <code>RemainAfterExit=yes</code>. This enabled persistent daemon operation across background sessions and automatic startup upon VM invocation.</li>
+</ul>
+<h3 id="2-webhdfs-307-redirect-cross-platform-hostname-resolution">2. WebHDFS 307 Redirect &amp; Cross-Platform Hostname Resolution</h3>
+<ul>
+<li><strong>Symptom</strong>: Windows applications querying WebHDFS NameNode (<code>http://localhost:9870/webhdfs/v1/...</code>) threw <code>NameResolutionError: Failed to resolve 'laptop-mlc7cll4.localdomain'</code>.</li>
+<li><strong>Root Cause</strong>: During write operations, the HDFS NameNode returns an HTTP 307 redirect instructing the client to contact the DataNode by its canonical Linux hostname (<code>laptop-mlc7cll4.localdomain</code>). While resolvable inside Ubuntu, the Windows DNS resolver does not resolve internal WSL localdomain addresses.</li>
+<li><strong>Resolution</strong>: Updated <code>hdfs-site.xml</code> with:
+  <code>xml
+  &lt;property&gt;
+      &lt;name&gt;dfs.datanode.hostname&lt;/name&gt;
+      &lt;value&gt;localhost&lt;/value&gt;
+  &lt;/property&gt;</code>
+  This enforced that WebHDFS returns <code>http://localhost:9864</code> on redirects, making the endpoint universally routable across both Windows host scripts and internal WSL processes.</li>
+</ul>
+<h3 id="3-zero-knowledge-in-memory-reassembly">3. Zero-Knowledge In-Memory Reassembly</h3>
+<ul>
+<li><strong>Symptom</strong>: Large file downloads risked exhausting local disk space or leaking temporary unencrypted files.</li>
+<li><strong>Resolution</strong>: The download controller was architected to stream encrypted chunks directly into memory, decrypt each sequentially via Fernet, and stream directly into Flask's <code>send_file</code> using an in-memory buffer (<code>io.BytesIO</code>), leaving no unencrypted residue on disk.</li>
+</ul>
+<hr />
+<h2 id="7-conclusion-future-enhancements">7. Conclusion &amp; Future Enhancements</h2>
+<p>This practical work demonstrated the concrete engineering requirements for building and operating secure cloud systems across both infrastructure and platform abstractions:
+- In <strong>Project #9</strong>, we demonstrated that a robust, zero-trust cloud storage service can be established locally over distributed nodes by combining symmetric block ciphering with HDFS chunk partitioning.
+- In <strong>Project #8</strong>, we showed how enterprise PaaS dramatically accelerates business application development through declarative data modeling, automated business rules, and pre-built analytical reporting engines.</p>
+<h3 id="future-enhancements">Future Enhancements</h3>
+<ol>
+<li><strong>Physical Multi-Node Expansion</strong>: Scaling the HDFS cluster across multiple physical nodes or Raspberry Pi edge boards with a replication factor of $3$.</li>
+<li><strong>Asymmetric Key Exchange</strong>: Implementing RSA / hybrid cryptography so that chunk keys are encrypted under recipient public keys.</li>
+<li><strong>Salesforce Experience Cloud Integration</strong>: Publishing a public-facing Community portal enabling prospective students to directly submit their own applications and view admissions status in real time.</li>
+</ol>
+<hr />
+<h2 id="8-references-technical-specifications">8. References &amp; Technical Specifications</h2>
+<ol>
+<li><strong>Apache Software Foundation</strong>. <em>Hadoop Distributed File System (HDFS) Architecture Guide</em>, Hadoop 3.3.6 Documentation, 2023. <a href="https://hadoop.apache.org/docs/r3.3.6/">https://hadoop.apache.org/docs/r3.3.6/</a></li>
+<li><strong>Apache Software Foundation</strong>. <em>WebHDFS REST API Specification</em>, Hadoop 3.3.6 Documentation, 2023.</li>
+<li><strong>National Institute of Standards and Technology (NIST)</strong>. <em>FIPS PUB 197: Advanced Encryption Standard (AES)</em>, U.S. Department of Commerce, 2001.</li>
+<li><strong>Krawczyk, H., Bellare, M., &amp; Canetti, R.</strong> <em>RFC 2104: HMAC: Keyed-Hashing for Message Authentication</em>, Internet Engineering Task Force (IETF), 1997.</li>
+<li><strong>Python Cryptography Authority</strong>. <em>Fernet Symmetric Encryption Specification</em>, 2024. <a href="https://cryptography.io/en/latest/fernet/">https://cryptography.io/en/latest/fernet/</a></li>
+<li><strong>Salesforce Inc.</strong> <em>Salesforce Lightning Platform Fundamentals: An Introduction to Customizing Salesforce</em>, Salesforce Documentation, 2026.</li>
+<li><strong>Salesforce Inc.</strong> <em>Salesforce Lightning Design System (SLDS)</em>, 2026. <a href="https://www.lightningdesignsystem.com/">https://www.lightningdesignsystem.com/</a></li>
+</ol>
+</body>
+</html>
