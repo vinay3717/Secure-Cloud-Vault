@@ -1,2 +1,13 @@
 BUILD.md
 PREREQUISITES.md
+
+# Virtual environment & Python cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Security & Data (as instructed in PREREQUISITES.md)
+secret.key
+flask-secret.key
+files.json
