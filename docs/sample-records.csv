@@ -1,0 +1,13 @@
+First_Name__c,Last_Name__c,Email__c,Phone__c,City__c,State__c,Target_Degree__c,Preferred_Intake__c,High_School_GPA__c,Entrance_Score__c,Inquiry_Status__c,Application_Fee_Paid__c,Follow_Up_Date__c,Counselor_Notes__c
+Aarav,Sharma,aarav.sharma@example.com,9876543210,Mumbai,Maharashtra,B.Tech Computer Science,Fall 2026,0.92,94,Enrolled,TRUE,2026-11-15,Top ranker in state test. Complete tuition fee deposited.
+Priya,Patel,priya.patel@example.com,9876543211,Ahmedabad,Gujarat,B.Tech AI & Data Science,Fall 2026,0.88,89,Application Submitted,TRUE,2026-11-10,Submitted portfolio and transcript. Awaiting final interview.
+Rohan,Deshmukh,rohan.deshmukh@example.com,9876543212,Pune,Maharashtra,B.Tech Cyber Security,Fall 2026,0.78,82,Counseling Scheduled,FALSE,2026-11-08,Interested in ethical hacking lab facilities. Follow-up on lab tour.
+Ananya,Iyer,ananya.iyer@example.com,9876543213,Bengaluru,Karnataka,M.Tech Cloud Computing,Spring 2027,0.95,96,Enrolled,TRUE,2026-11-20,Working professional in cloud DevOps seeking advanced degree.
+Vikram,Singh,vikram.singh@example.com,9876543214,Jaipur,Rajasthan,MCA,Fall 2026,0.82,79,Contacted,FALSE,2026-11-12,Sent course brochure and scholarship criteria over WhatsApp.
+Sneha,Reddy,sneha.reddy@example.com,9876543215,Hyderabad,Telangana,B.Tech Computer Science,Fall 2026,0.91,91,Application Submitted,TRUE,2026-11-09,Applied under merit quota. Documentation verified.
+Aditya,Verma,aditya.verma@example.com,9876543216,Delhi,Delhi,B.Tech AI & Data Science,Spring 2027,0.86,85,New,FALSE,2026-11-05,Web inquiry received via landing page. Unassigned to counselor.
+Neha,Kulkarni,neha.kulkarni@example.com,9876543217,Nagpur,Maharashtra,M.Tech Cloud Computing,Fall 2026,0.89,88,Counseling Scheduled,FALSE,2026-11-11,Scheduled counseling slot for Saturday morning.
+Karan,Mehta,karan.mehta@example.com,9876543218,Surat,Gujarat,B.Tech Cyber Security,Fall 2026,0.72,68,Closed - Lost,FALSE,2026-10-28,Opted for another regional institution due to location.
+Tanvi,Bose,tanvi.bose@example.com,9876543219,Kolkata,West Bengal,MCA,Fall 2026,0.87,83,Enrolled,TRUE,2026-11-18,Confirmed seat reservation and hostel allotment.
+Rahul,Nair,rahul.nair@example.com,9876543220,Kochi,Kerala,B.Tech Computer Science,Fall 2026,0.84,81,Contacted,FALSE,2026-11-14,Parent requested fee breakdown and payment installment options.
+Diya,Choudhary,diya.choudhary@example.com,9876543221,Chandigarh,Punjab,B.Tech AI & Data Science,Fall 2027,0.93,92,Application Submitted,TRUE,2026-11-16,Exceptional mathematics Olympiad score.
