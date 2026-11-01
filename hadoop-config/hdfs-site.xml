@@ -21,4 +21,8 @@
         <name>dfs.permissions.enabled</name>
         <value>false</value>
     </property>
+    <property>
+        <name>dfs.datanode.hostname</name>
+        <value>localhost</value>
+    </property>
 </configuration>
