@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Cloud Vault — Private LAN SaaS over HDFS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0d14;
+            --bg-card: rgba(18, 24, 38, 0.75);
+            --bg-card-hover: rgba(26, 34, 52, 0.85);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(99, 102, 241, 0.4);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.25);
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+            line-height: 1.5;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 24px var(--primary-glow);
+        }
+
+        .brand-icon svg {
+            width: 26px;
+            height: 26px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .brand-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-title p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.82rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-emerald);
+            box-shadow: 0 0 10px var(--accent-emerald);
+            animation: pulse 2s infinite;
+        }
+
+        .pulse-dot.offline {
+            background-color: var(--accent-rose);
+            box-shadow: 0 0 10px var(--accent-rose);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .flash-messages {
+            margin-bottom: 2rem;
+        }
+
+        .flash-alert {
+            padding: 0.9rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(8px);
+        }
+
+        .flash-alert.success {
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .flash-alert.danger {
+            border-color: rgba(244, 63, 94, 0.3);
+            color: #fb7185;
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .flash-alert.warning {
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            backdrop-filter: blur(16px);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-focus);
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .stat-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .upload-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            backdrop-filter: blur(16px);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            background: rgba(15, 23, 42, 0.4);
+            cursor: pointer;
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 1rem;
+            color: var(--primary);
+        }
+
+        .upload-btn {
+            background: var(--primary-gradient);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s, box-shadow 0.2s;
+            margin-top: 1rem;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .upload-btn:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .files-table-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        thead tr {
+            background: rgba(15, 23, 42, 0.6);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        th {
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .file-name {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+        }
+
+        .file-icon {
+            color: var(--accent-cyan);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-download {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-download:hover {
+            background: rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-delete {
+            background: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(244, 63, 94, 0.25);
+        }
+
+        .btn-inspect {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-inspect:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-dim);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            stroke: var(--text-dim);
+        }
+
+        .chunk-drawer {
+            display: none;
+            background: rgba(10, 14, 23, 0.95);
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border-subtle);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .chunk-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .chunk-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="brand-title">
+                    <h1>Secure Cloud Vault</h1>
+                    <p>Private LAN SaaS Distributed Storage over Apache HDFS</p>
+                </div>
+            </div>
+            <div class="status-badge">
+                <div class="pulse-dot {{ '' if hdfs_ok else 'offline' }}"></div>
+                <span>HDFS: <strong>{{ hdfs_status_msg }}</strong></span>
+                <span style="color: var(--text-dim);">|</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ hdfs_url }}</span>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-alert {{ category }}">
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Stored Files</div>
+                <div class="stat-value">{{ total_files }}</div>
+                <div class="stat-sub">Managed via metadata registry</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Raw Volume</div>
+                <div class="stat-value">{{ (total_raw_bytes / 1024 / 1024) | round(2) }} <span style="font-size: 1rem; color: var(--text-dim);">MiB</span></div>
+                <div class="stat-sub">{{ total_raw_bytes }} bytes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Distributed Chunks</div>
+                <div class="stat-value">{{ total_chunks }}</div>
+                <div class="stat-sub">{{ chunk_size_mb }} MiB / chunk size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cipher Engine</div>
+                <div class="stat-value" style="color: #a5b4fc;">Fernet</div>
+                <div class="stat-sub">AES-128-CBC + HMAC-SHA256</div>
+            </div>
+        </div>
+
+        <section class="upload-section">
+            <div class="section-header">
+                <h2>Upload & Encrypt File</h2>
+                <span class="badge">MAX 100 MiB</span>
+            </div>
+            <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p style="font-weight: 600; margin-bottom: 0.25rem;" id="fileNameDisplay">Click or drop a file to upload</p>
+                    <p style="font-size: 0.82rem; color: var(--text-dim);">Files are partitioned into 2 MiB chunks and encrypted before HDFS ingestion</p>
+                    <input type="file" name="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
+                </div>
+                <div style="text-align: right;">
+                    <button type="submit" class="upload-btn">Encrypt & Store in HDFS</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="files-table-wrapper">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.1rem; font-weight: 600;">Stored Files Registry</h2>
+                <span style="font-size: 0.8rem; color: var(--text-dim);">HDFS Path: <code style="color: #a5b4fc;">/saas_cloud</code></span>
+            </div>
+
+            {% if files %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Original Size</th>
+                        <th>Chunks</th>
+                        <th>Uploaded Timestamp</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file_id, file in files.items() %}
+                    <tr>
+                        <td>
+                            <div class="file-name">
+                                <svg class="file-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>{{ file.filename }}</span>
+                            </div>
+                        </td>
+                        <td>{{ (file.size / 1024) | round(1) }} KB <span style="color: var(--text-dim); font-size: 0.75rem;">({{ file.size }} B)</span></td>
+                        <td>
+                            <span class="badge">{{ file.chunk_count }} chunk(s)</span>
+                        </td>
+                        <td style="color: var(--text-muted); font-size: 0.82rem;">{{ file.uploaded_at }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 0.5rem;">
+                                <button type="button" class="btn-action btn-inspect" onclick="toggleChunks('{{ file_id }}')">
+                                    Inspect
+                                </button>
+                                <a href="{{ url_for('download', file_id=file_id) }}" class="btn-action btn-download">
+                                    Download
+                                </a>
+                                <form action="{{ url_for('delete_file', file_id=file_id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Purge this file and all chunks from HDFS?');">
+                                    <button type="submit" class="btn-action btn-delete">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="drawer-{{ file_id }}" style="display: none;">
+                        <td colspan="5" style="padding: 0;">
+                            <div class="chunk-drawer" id="drawer-content-{{ file_id }}">
+                                <div><strong>HDFS Chunk Partition Details (Encrypted):</strong></div>
+                                <div class="chunk-list">
+                                    {% for chunk in file.chunks %}
+                                    <div class="chunk-item">
+                                        <div style="color: #cbd5e1; font-weight: 600;">Chunk #{{ chunk.index }}</div>
+                                        <div>Path: {{ chunk.hdfs_path }}</div>
+                                        <div>Raw: {{ chunk.raw_size }} B | Encrypted: {{ chunk.enc_size }} B</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                <h3>No files uploaded yet</h3>
+                <p>Upload a file above to encrypt, chunk, and distribute it across HDFS.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                document.getElementById('fileNameDisplay').textContent = `${file.name} (${sizeMb} MiB)`;
+            }
+        }
+
+        function toggleChunks(fileId) {
+            const row = document.getElementById(`drawer-${fileId}`);
+            const content = document.getElementById(`drawer-content-${fileId}`);
+            if (row.style.display === 'none' || row.style.display === '') {
+                row.style.display = 'table-row';
+                content.style.display = 'block';
+            } else {
+                row.style.display = 'none';
+                content.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
