@@ -22,6 +22,11 @@
    - 2.5 [Implementation Details (Flask Controller & Glassmorphism UI)](#25-implementation-details)
    - 2.6 [Verification, Automated Testing & Roundtrip Results](#26-verification-automated-testing--roundtrip-results)
 4. [3. Project #8: Custom Admissions Application on Salesforce Cloud Platform](#3-project-8-custom-admissions-application-on-salesforce-cloud-platform)
+   - 3.1 [Problem Statement & Educational Domain Overview](#31-problem-statement--educational-domain-overview)
+   - 3.2 [Data Architecture & Object Schema (Student_Inquiry__c)](#32-data-architecture--object-schema)
+   - 3.3 [Lightning App Architecture & Dynamic Path Assistant](#33-lightning-app-architecture--dynamic-path-assistant)
+   - 3.4 [Business Logic, Automation & Validation Rules](#34-business-logic-automation--validation-rules)
+   - 3.5 [Analytical Reports & Executive Decision Dashboard](#35-analytical-reports--executive-decision-dashboard)
 5. [4. Comparative Analysis of Cloud Service Delivery Models](#4-comparative-analysis-of-cloud-service-delivery-models)
 6. [5. Implementation Screenshots & Operational Evidence](#5-implementation-screenshots--operational-evidence)
 7. [6. Engineering Challenges, Troubleshooting & Gotchas](#6-engineering-challenges-troubleshooting--gotchas)
@@ -180,17 +185,102 @@ Automated regression and unit test suites were developed in `tests/`:
 ---
 
 ## 3. Project #8: Custom Admissions Application on Salesforce Cloud Platform
-<!-- Detailed technical documentation for Project #8 will be inserted here in Step 3 -->
+
+### 3.1 Problem Statement & Educational Domain Overview
+Higher education admissions offices receive thousands of prospective inquiries annually across diverse academic programs. Traditional manual spreadsheets and disconnected email chains create critical operational bottlenecks:
+1. **Unorganized Lead Tracking**: Difficulty in identifying which leads have been contacted versus those awaiting scheduled counseling.
+2. **Manual Evaluation Overhead**: Counselors manually compute qualification thresholds for merit-based scholarships.
+3. **Zero Leadership Visibility**: Executive admissions deans lack real-time visibility into conversion bottlenecks and intake capacity.
+
+**Project #8** resolves these issues by engineering a custom cloud application on the Salesforce Lightning Platform called **Admissions Cloud Management**.
+
+---
+
+### 3.2 Data Architecture & Object Schema (`Student_Inquiry__c`)
+
+The relational schema is anchored on a custom object `Student_Inquiry__c`:
+- **Object API Name**: `Student_Inquiry__c` (Label: `Student Inquiry`)
+- **Record Identifier**: `Name` formatted as an Auto Number `INQ-{YYYY}-{0000}`.
+- **Sharing Model**: Public Read/Write with field-level security managed by profile.
+
+#### Field Dictionary
+
+| Field Label | API Name | Type | Constraints / Formula |
+|---|---|---|---|
+| Inquiry Number | `Name` | Auto Number | `INQ-{YYYY}-{0000}` (Indexed Primary Key) |
+| First Name | `First_Name__c` | Text(50) | Required |
+| Last Name | `Last_Name__c` | Text(50) | Required |
+| Email Address | `Email__c` | Email | Unique, External ID |
+| Contact Phone | `Phone__c` | Phone | Validated format |
+| City / State | `City__c` / `State__c` | Text(60) | Residential geographic mapping |
+| Target Degree Program | `Target_Degree__c` | Picklist | `B.Tech Computer Science`, `B.Tech AI & Data Science`, `B.Tech Cyber Security`, `M.Tech Cloud Computing`, `MCA` |
+| Preferred Intake | `Preferred_Intake__c` | Picklist | `Fall 2026`, `Spring 2027`, `Fall 2027` |
+| High School GPA | `High_School_GPA__c` | Percent(3, 2) | Stored as decimal `0.00%` – `100.00%` |
+| Entrance Exam Score | `Entrance_Score__c` | Number(3, 0) | Range `0` – `100` |
+| Merit Scholarship Eligible | `Scholarship_Eligible__c` | Formula (Checkbox) | `IF(High_School_GPA__c >= 0.85, TRUE, FALSE)` |
+| Inquiry Status | `Inquiry_Status__c` | Picklist | `New`, `Contacted`, `Counseling Scheduled`, `Application Submitted`, `Enrolled`, `Closed - Lost` |
+| Application Fee Paid | `Application_Fee_Paid__c` | Checkbox | Default: `FALSE` |
+| Follow-Up Date | `Follow_Up_Date__c` | Date | Counselor schedule reminder |
+| Counselor Notes | `Counselor_Notes__c` | Long Text(2000) | Qualitative interaction log |
+
+---
+
+### 3.3 Lightning App Architecture & Dynamic Path Assistant
+
+The application is deployed as a Lightning App (`Admissions_Cloud_Management`) incorporating:
+- **Consolidated Navigation Bar**: `Home`, `Student Inquiries`, `Reports`, and `Dashboards`.
+- **Dynamic Lightning Path**: A visual chevron progress tracker positioned on top of the record page bound to `Inquiry_Status__c`. Counselors advance inquiries with a single click across the pipeline:
+  $$\text{New} \longrightarrow \text{Contacted} \longrightarrow \text{Counseling Scheduled} \longrightarrow \text{Application Submitted} \longrightarrow \text{Enrolled}$$
+- **Highlights Panel**: Surfaces high-priority fields at a glance (Status pill, Program, GPA percentage, and dynamic Scholarship eligibility checkmark).
+
+---
+
+### 3.4 Business Logic, Automation & Validation Rules
+
+To preserve data integrity, declarative validation rules were implemented:
+1. **VR01 — GPA Bounds Checking (`VR_GPA_Percentage_Range`)**:
+   ```sql
+   OR(High_School_GPA__c < 0.0, High_School_GPA__c > 1.0)
+   ```
+   *Prevents counselors from entering out-of-range academic percentages.*
+2. **VR02 — Mandatory Contact Channel (`VR_Email_Or_Phone_Required`)**:
+   ```sql
+   AND(ISBLANK(Email__c), ISBLANK(Phone__c))
+   ```
+   *Guarantees that an applicant cannot be saved without at least one actionable contact channel.*
+3. **Automated Merit Evaluation**: The formula field `Scholarship_Eligible__c` executes instant client-side and server-side evaluation upon saving or modifying academic GPA, eliminating human miscalculation.
+
+---
+
+### 3.5 Analytical Reports & Executive Decision Dashboard
+
+Business intelligence is delivered via two custom reports and an executive dashboard:
+- **Pipeline Summary Report**: Groups all 12 student inquiry records by `Inquiry_Status__c` and summarizes academic credentials across each degree program.
+- **Scholarship Candidate Report**: Filters records where `Scholarship_Eligible__c = TRUE` (7 out of 12 sample applicants qualifying).
+- **Executive Admissions Dashboard**:
+  1. *Funnel Component*: Tracks the lead-to-enrollment attrition rate.
+  2. *Program Demand Donut Chart*: Visualizes application volume by degree (B.Tech CS and AI/Data Science leading demand at 25% each).
+  3. *Enrollment Target Gauge*: Displays real-time progress toward the 10-student cohort target (currently 30% achieved).
+  4. *Scholarship Rate Metric Card*: Displays the 58.3% merit qualification rate.
 
 ---
 
 ## 4. Comparative Analysis of Cloud Service Delivery Models
-<!-- Comparative analysis between IaaS, PaaS, and SaaS across both systems -->
+
+| Evaluation Criteria | Project #9: Private LAN SaaS (HDFS + Flask) | Project #8: Salesforce Enterprise Cloud (PaaS) |
+|---|---|---|
+| **Cloud Delivery Tier** | Built on **IaaS / Distributed File System** | Built on **Multi-Tenant Enterprise PaaS** |
+| **Infrastructure Management** | High: Admin manages OS daemons (NameNode, DataNode, JVM, ports) | Zero: Salesforce manages all servers, database clustering, and upgrades |
+| **Storage Architecture** | Distributed 2 MiB blocks on physical disk partitions | Cloud multi-tenant relational database (Oracle / Force.com DB) |
+| **Data Encryption** | Client-side symmetric Fernet (AES-128-CBC + HMAC) | Platform-managed Transparent Data Encryption (Salesforce Shield / AES-256) |
+| **Customizability & Code** | High: Full source code control in Python, HTML5, Vanilla CSS | Rapid Low-Code: Declarative schema, formulas, Lightning App Builder |
+| **Scalability Model** | Horizontal scaling via additional HDFS DataNode nodes | Elastic cloud scaling handled automatically by Salesforce infrastructure |
+| **Network & Access** | LAN / WebHDFS HTTP endpoints (`localhost:9870`, `:5000`) | Global multi-region HTTPS cloud endpoint (`login.salesforce.com`) |
 
 ---
 
 ## 5. Implementation Screenshots & Operational Evidence
-<!-- System screenshots and execution artifacts will be linked and inserted here -->
+<!-- System screenshots and execution artifacts will be linked and inserted here in Step 4 -->
 
 ---
 
