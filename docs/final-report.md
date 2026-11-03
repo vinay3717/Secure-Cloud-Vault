@@ -21,16 +21,16 @@
    - 2.4 [2 MiB Partitioning & WebHDFS Distribution Pipeline](#24-2-mib-partitioning--webhdfs-distribution-pipeline)
    - 2.5 [Implementation Details (Flask Controller & Glassmorphism UI)](#25-implementation-details)
    - 2.6 [Verification, Automated Testing & Roundtrip Results](#26-verification-automated-testing--roundtrip-results)
-4. [3. Project #8: Custom Admissions Application on Salesforce Cloud Platform](#3-project-8-custom-admissions-application-on-salesforce-cloud-platform)
+4. [3. Project #8: Custom Application on Salesforce Cloud Platform (Student Record Manager)](#3-project-8-custom-application-on-salesforce-cloud-platform-student-record-manager)
    - 3.1 [Problem Statement & Educational Domain Overview](#31-problem-statement--educational-domain-overview)
-   - 3.2 [Data Architecture & Object Schema (Student_Inquiry__c)](#32-data-architecture--object-schema)
-   - 3.3 [Lightning App Architecture & Dynamic Path Assistant](#33-lightning-app-architecture--dynamic-path-assistant)
-   - 3.4 [Business Logic, Automation & Validation Rules](#34-business-logic-automation--validation-rules)
+   - 3.2 [Data Architecture & Object Schema (Student_Record__c)](#32-data-architecture--object-schema-student_record__c)
+   - 3.3 [Lightning App Architecture & User Interface Design](#33-lightning-app-architecture--user-interface-design)
+   - 3.4 [Business Logic, Integrity Constraints & Validation Rules](#34-business-logic-integrity-constraints--validation-rules)
    - 3.5 [Analytical Reports & Executive Decision Dashboard](#35-analytical-reports--executive-decision-dashboard)
 5. [4. Comparative Analysis of Cloud Service Delivery Models](#4-comparative-analysis-of-cloud-service-delivery-models)
 6. [5. Implementation Screenshots & Operational Evidence](#5-implementation-screenshots--operational-evidence)
    - 5.1 [Project #9: Secure Cloud Vault & HDFS Interface Artifacts](#51-project-9-secure-cloud-vault--hdfs-interface-artifacts)
-   - 5.2 [Project #8: Salesforce Cloud Admissions Console Artifacts](#52-project-8-salesforce-cloud-admissions-console-artifacts)
+   - 5.2 [Project #8: Salesforce Cloud Academic Management Artifacts](#52-project-8-salesforce-cloud-academic-management-artifacts)
 7. [6. Engineering Challenges, Troubleshooting & Gotchas](#6-engineering-challenges-troubleshooting--gotchas)
 8. [7. Conclusion & Future Enhancements](#7-conclusion--future-enhancements)
 9. [8. References & Technical Specifications](#8-references--technical-specifications)
@@ -41,7 +41,7 @@
 Modern enterprise computing increasingly relies on hybrid paradigms that combine low-level distributed infrastructure with high-level software-as-a-service platforms. This technical report comprehensively documents the architecture, implementation, and empirical verification of two complementary cloud practical projects:
 
 1. **Project #9 — Private LAN SaaS Cloud Storage over Apache HDFS (`Secure Cloud Vault`)**: An end-to-end distributed storage system constructed using Python Flask and Apache Hadoop HDFS. Files uploaded via a web console are streamed, partitioned into fixed 2 MiB chunks, individually encrypted using authenticated symmetric cryptography (Fernet AES-128-CBC + HMAC-SHA256), and distributed into HDFS data blocks via WebHDFS. Retrieval is achieved by fetching encrypted blocks sequentially, authenticating and decrypting each segment in memory, and reassembling the exact bitstream for download without intermediate plaintext storage on disk.
-2. **Project #8 — Custom Application on Salesforce Cloud Platform (`Admissions Cloud Management`)**: An enterprise-grade cloud CRM solution engineered on Salesforce Lightning Experience. It models the complete lifecycle of student recruitment and program enrollment using custom objects (`Student_Inquiry__c`), automated formula fields, validation rules, Lightning Path stage trackers, summary reports, and real-time executive management dashboards.
+2. **Project #8 — Custom Application on Salesforce Cloud Platform (`Student Record Manager`)**: An enterprise-grade cloud academic management solution engineered on Salesforce Lightning Experience. It tracks undergraduate student academic records—including enrollment date, department/course allocation, semester progression, cumulative GPA, and lifecycle status (`Active`, `On Leave`, `Graduated`, `Dropped`)—reinforced by strict data validation rules ($0.00 \le \text{GPA} \le 10.00$), tabular summary reports, and real-time executive analytics dashboards.
 
 Both systems were developed, automated, and verified locally using WSL2 (Ubuntu 26.04 LTS) and Windows 11 host environments.
 
@@ -186,84 +186,95 @@ Automated regression and unit test suites were developed in `tests/`:
 
 ---
 
-## 3. Project #8: Custom Admissions Application on Salesforce Cloud Platform
+## 3. Project #8: Custom Application on Salesforce Cloud Platform (Student Record Manager)
 
 ### 3.1 Problem Statement & Educational Domain Overview
-Higher education admissions offices receive thousands of prospective inquiries annually across diverse academic programs. Traditional manual spreadsheets and disconnected email chains create critical operational bottlenecks:
-1. **Unorganized Lead Tracking**: Difficulty in identifying which leads have been contacted versus those awaiting scheduled counseling.
-2. **Manual Evaluation Overhead**: Counselors manually compute qualification thresholds for merit-based scholarships.
-3. **Zero Leadership Visibility**: Executive admissions deans lack real-time visibility into conversion bottlenecks and intake capacity.
+Academic registrars, department heads, and faculty advisors across university institutions manage academic profiles for hundreds of students across various engineering disciplines. Relying on disconnected desktop spreadsheets, physical record registers, or siloed departmental databases introduces critical operational vulnerabilities:
+1. **Lack of Centralized Single Source of Truth**: Fragmented student files lead to conflicting enrollment and status standing information between registrar and academic departments.
+2. **Data Integrity Hazards & Out-of-Bounds GPA Entries**: Spreadsheets lack mandatory field constraints, allowing erroneous GPA inputs (e.g., negative numbers or values exceeding the maximum 10.00 institutional grading scale).
+3. **Absence of Real-Time Cohort Analytics**: Faculty leadership and deans lack instant visibility into departmental performance distributions, student attrition, and cohort progression across semesters.
 
-**Project #8** resolves these issues by engineering a custom cloud application on the Salesforce Lightning Platform called **Admissions Cloud Management**.
+**Project #8** resolves these challenges by architecting and configuring a native cloud solution on the Salesforce Lightning Platform entitled **Student Record Manager**.
 
 ---
 
-### 3.2 Data Architecture & Object Schema (`Student_Inquiry__c`)
+### 3.2 Data Architecture & Object Schema (`Student_Record__c`)
 
-The relational schema is anchored on a custom object `Student_Inquiry__c`:
-- **Object API Name**: `Student_Inquiry__c` (Label: `Student Inquiry`)
-- **Record Identifier**: `Name` formatted as an Auto Number `INQ-{YYYY}-{0000}`.
-- **Sharing Model**: Public Read/Write with field-level security managed by profile.
+The academic relational data model is anchored on a custom object `Student_Record__c`:
+- **Object API Name**: `Student_Record__c` (Label: `Student Record`, Plural: `Student Records`)
+- **Record Identifier (Standard Name)**: `Name` configured as `Text(80)` to store the student's full legal name (e.g., *Aarav Sharma*).
+- **Sharing Model**: Public Read/Write with system audit tracking enabled.
+- **Enabled Platform Capabilities**: Reports, Activities, Field History Tracking.
 
 #### Field Dictionary
 
-| Field Label | API Name | Type | Constraints / Formula |
-|---|---|---|---|
-| Inquiry Number | `Name` | Auto Number | `INQ-{YYYY}-{0000}` (Indexed Primary Key) |
-| First Name | `First_Name__c` | Text(50) | Required |
-| Last Name | `Last_Name__c` | Text(50) | Required |
-| Email Address | `Email__c` | Email | Unique, External ID |
-| Contact Phone | `Phone__c` | Phone | Validated format |
-| City / State | `City__c` / `State__c` | Text(60) | Residential geographic mapping |
-| Target Degree Program | `Target_Degree__c` | Picklist | `B.Tech Computer Science`, `B.Tech AI & Data Science`, `B.Tech Cyber Security`, `M.Tech Cloud Computing`, `MCA` |
-| Preferred Intake | `Preferred_Intake__c` | Picklist | `Fall 2026`, `Spring 2027`, `Fall 2027` |
-| High School GPA | `High_School_GPA__c` | Percent(3, 2) | Stored as decimal `0.00%` – `100.00%` |
-| Entrance Exam Score | `Entrance_Score__c` | Number(3, 0) | Range `0` – `100` |
-| Merit Scholarship Eligible | `Scholarship_Eligible__c` | Formula (Checkbox) | `IF(High_School_GPA__c >= 0.85, TRUE, FALSE)` |
-| Inquiry Status | `Inquiry_Status__c` | Picklist | `New`, `Contacted`, `Counseling Scheduled`, `Application Submitted`, `Enrolled`, `Closed - Lost` |
-| Application Fee Paid | `Application_Fee_Paid__c` | Checkbox | Default: `FALSE` |
-| Follow-Up Date | `Follow_Up_Date__c` | Date | Counselor schedule reminder |
-| Counselor Notes | `Counselor_Notes__c` | Long Text(2000) | Qualitative interaction log |
+| Field Label | API Name | Data Type | Constraints / Properties | Description |
+|---|---|---|---|---|
+| Student Name | `Name` | Text(80) | Standard Record Name, Required | Full legal student name |
+| Roll Number | `Roll_Number__c` | Text(20) | Required, Unique, External ID | Institutional roll identifier (e.g., `CS-2023-014`) |
+| Email | `Email__c` | Email | Required | Primary student academic communication address |
+| Course | `Course__c` | Picklist | Required (5 restricted values) | `Computer Engineering`, `Information Technology`, `Mechanical Engineering`, `Civil Engineering`, `Electronics & Telecommunication` |
+| Semester | `Semester__c` | Number(2, 0) | Required (Valid range: 1–8) | Current enrolled academic term |
+| GPA | `GPA__c` | Number(3, 2) | Required (Range: 0.00–10.00) | Cumulative Grade Point Average on 10.00 scale |
+| Status | `Status__c` | Picklist | Required, Default: `Active` | Academic standing: `Active`, `On Leave`, `Graduated`, `Dropped` |
+| Enrolment Date | `Enrolment_Date__c` | Date | Required | Formal date of registration and admission |
 
 ---
 
-### 3.3 Lightning App Architecture & Dynamic Path Assistant
+### 3.3 Lightning App Architecture & User Interface Design
 
-The application is deployed as a Lightning App (`Admissions_Cloud_Management`) incorporating:
-- **Consolidated Navigation Bar**: `Home`, `Student Inquiries`, `Reports`, and `Dashboards`.
-- **Dynamic Lightning Path**: A visual chevron progress tracker positioned on top of the record page bound to `Inquiry_Status__c`. Counselors advance inquiries with a single click across the pipeline:
-  $$\text{New} \longrightarrow \text{Contacted} \longrightarrow \text{Counseling Scheduled} \longrightarrow \text{Application Submitted} \longrightarrow \text{Enrolled}$$
-- **Highlights Panel**: Surfaces high-priority fields at a glance (Status pill, Program, GPA percentage, and dynamic Scholarship eligibility checkmark).
+The application is deployed using Salesforce **App Manager** as a dedicated Lightning App named **Student Record Manager** (`Student_Record_Manager`):
+- **App Navigation Structure**: Standard Navigation hosting three primary tabs:
+  1. `Student Records`: Custom tab directly mapped to `Student_Record__c` with custom list views (All Students, Active Students by Department).
+  2. `Reports`: Standard Lightning analytics tab providing access to academic performance reports.
+  3. `Dashboards`: Executive visualization tab displaying multi-metric performance boards.
+- **Lightning Page Highlights Panel**: Positioned prominently at the header of each record detail view, summarizing key decision attributes: Student Name, Roll Number, Department, Current Semester, GPA pill, and Status badge.
+- **Dual-Column Page Layout**: Organizes detailed metadata into "Student Identity & Registration", "Academic Performance", and "System Audit Information" sections.
 
 ---
 
-### 3.4 Business Logic, Automation & Validation Rules
+### 3.4 Business Logic, Integrity Constraints & Validation Rules
 
-To preserve data integrity, declarative validation rules were implemented:
-1. **VR01 — GPA Bounds Checking (`VR_GPA_Percentage_Range`)**:
-   ```sql
-   OR(High_School_GPA__c < 0.0, High_School_GPA__c > 1.0)
-   ```
-   *Prevents counselors from entering out-of-range academic percentages.*
-2. **VR02 — Mandatory Contact Channel (`VR_Email_Or_Phone_Required`)**:
-   ```sql
-   AND(ISBLANK(Email__c), ISBLANK(Phone__c))
-   ```
-   *Guarantees that an applicant cannot be saved without at least one actionable contact channel.*
-3. **Automated Merit Evaluation**: The formula field `Scholarship_Eligible__c` executes instant client-side and server-side evaluation upon saving or modifying academic GPA, eliminating human miscalculation.
+To prevent corrupted or invalid data entry into the cloud platform, declarative validation rules were implemented:
+
+#### VR01 — GPA Bounds Checking (`VR_GPA_Range`)
+```sql
+OR(
+    GPA__c < 0.00,
+    GPA__c > 10.00
+)
+```
+- **Error Message**: *"GPA must be between 0.00 and 10.00."*
+- **Field Target**: `GPA__c`
+- **Validation Verification**: Attempting to insert or update a record with an invalid GPA (e.g., `11.50` or `-1.00`) triggers an instant rollback and displays a prominent red warning banner preventing record persistence until corrected.
+
+#### VR02 — Semester Term Boundary Constraint (`VR_Semester_Range`)
+```sql
+OR(
+    Semester__c < 1,
+    Semester__c > 8
+)
+```
+- **Error Message**: *"Semester must be between 1 and 8."*
+- **Field Target**: `Semester__c`
 
 ---
 
 ### 3.5 Analytical Reports & Executive Decision Dashboard
 
-Business intelligence is delivered via two custom reports and an executive dashboard:
-- **Pipeline Summary Report**: Groups all 12 student inquiry records by `Inquiry_Status__c` and summarizes academic credentials across each degree program.
-- **Scholarship Candidate Report**: Filters records where `Scholarship_Eligible__c = TRUE` (7 out of 12 sample applicants qualifying).
-- **Executive Admissions Dashboard**:
-  1. *Funnel Component*: Tracks the lead-to-enrollment attrition rate.
-  2. *Program Demand Donut Chart*: Visualizes application volume by degree (B.Tech CS and AI/Data Science leading demand at 25% each).
-  3. *Enrollment Target Gauge*: Displays real-time progress toward the 10-student cohort target (currently 30% achieved).
-  4. *Scholarship Rate Metric Card*: Displays the 58.3% merit qualification rate.
+Administrative decision-making is powered by native Salesforce reporting engines:
+- **Academic Performance Summary Report**: Groups the 10 student records by `Course__c` and `Status__c`, calculating record counts and department average GPAs:
+  - Computer Engineering: 2 students • Average GPA: **9.30**
+  - Information Technology: 2 students • Average GPA: **8.80**
+  - Electronics & Telecommunication: 2 students • Average GPA: **7.98**
+  - Mechanical Engineering: 2 students • Average GPA: **7.55**
+  - Civil Engineering: 2 students • Average GPA: **7.43**
+  - Institutional Cohort Average: **8.21 / 10.00**
+- **Executive Analytics Dashboard**: Comprises four interactive components:
+  1. *Horizontal Department GPA Bar Chart*: Benchmarking average GPA per engineering department against the 7.80 target threshold.
+  2. *Status Distribution Donut Chart*: Showing 60% Active, 20% Graduated, 10% On Leave, and 10% Dropped.
+  3. *Institutional GPA Metric Card*: Prominently displaying the 8.21 cohort average with delta indicator.
+  4. *Semester Progression Table*: Detailing student dispersion across semesters 3, 4, 5, 6, and 8.
 
 ---
 
@@ -303,23 +314,27 @@ Business intelligence is delivered via two custom reports and an executive dashb
 
 ---
 
-### 5.2 Project #8: Salesforce Cloud Admissions Console Artifacts
+### 5.2 Project #8: Salesforce Cloud Academic Management Artifacts
 
-#### Figure 5: Custom Object Schema (`Student_Inquiry__c`)
-*Salesforce Object Manager interface detailing custom fields, formulas, and required data constraints.*
+#### Figure 5: Custom Object Schema (`Student_Record__c`)
+*Salesforce Object Manager interface detailing custom fields, types, unique constraints, and validation rules.*
 ![Custom Object Schema](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/01_custom_object_schema.png)
 
-#### Figure 6: Lightning Record Detail View with Dynamic Path
-*Student record interface showcasing the interactive stage path (`Enrolled`), highlights summary, and profile details.*
+#### Figure 6: Lightning Record Detail View
+*Student Record interface showcasing Highlights Panel, student identity fields, academic progression, and advising tasks.*
 ![Lightning Record Detail View](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/02_record_detail_view.png)
 
-#### Figure 7: Admissions Pipeline Summary Report
-*Standardized analytical report grouped by inquiry lifecycle status and academic program.*
-![Admissions Pipeline Report](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/03_pipeline_report.png)
+#### Figure 7: Academic Performance Summary Report
+*Salesforce matrix/summary report grouped by Course and Status, calculating student counts and average GPA.*
+![Academic Performance Report](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/03_pipeline_report.png)
 
-#### Figure 8: Admissions Operations Executive Dashboard
-*Real-time executive dashboard featuring conversion funnels, degree program distribution donut charts, and intake KPI metrics.*
-![Executive Admissions Dashboard](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/04_executive_dashboard.png)
+#### Figure 8: Executive Academic Analytics Dashboard
+*Real-time executive dashboard featuring departmental GPA benchmarks, enrollment status donut chart, and progression summaries.*
+![Executive Analytics Dashboard](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/04_executive_dashboard.png)
+
+#### Figure 9: Declarative GPA Validation Rule Test & Enforcement
+*Salesforce Lightning UI blocking an out-of-range GPA entry (11.50) with the active error rule: "GPA must be between 0.00 and 10.00."*
+![Validation Rule Test](file:///c:/Users/Vinay%20Umesh%20Gole/Desktop/CC_Project/screenshots/salesforce/05_validation_rule_test.png)
 
 ---
 
@@ -359,7 +374,7 @@ This practical work demonstrated the concrete engineering requirements for build
 ### Future Enhancements
 1. **Physical Multi-Node Expansion**: Scaling the HDFS cluster across multiple physical nodes or Raspberry Pi edge boards with a replication factor of $3$.
 2. **Asymmetric Key Exchange**: Implementing RSA / hybrid cryptography so that chunk keys are encrypted under recipient public keys.
-3. **Salesforce Experience Cloud Integration**: Publishing a public-facing Community portal enabling prospective students to directly submit their own applications and view admissions status in real time.
+3. **Salesforce Experience Cloud Integration**: Publishing a student self-service portal enabling enrolled students to view verified semester results, track degree progression, and schedule advising sessions online.
 
 ---
 
