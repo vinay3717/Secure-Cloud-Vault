@@ -1,27 +1,27 @@
 # Salesforce Custom Object & Field Schema
 
 ## Overview
-This document specifies the data model and schema for **Project #8 — Custom Application using Salesforce Cloud (Student Inquiry & Records Management)**. 
+This document specifies the technical data model and field schema for **Project #8 — Custom Application using Salesforce Cloud (Student Record Manager)**.
 
-The application is deployed on Salesforce Lightning Platform to capture prospective student inquiries, manage application lifecycles, track counselor interactions, and power analytical admission reports and dashboards.
+The application is deployed on Salesforce Lightning Platform to maintain comprehensive academic records of enrolled undergraduate and postgraduate students, tracking their program enrollment, semester progression, academic performance (GPA), and lifecycle status, reinforced with data validation rules and analytical reporting.
 
 ---
 
 ## 1. Custom Object Definition
 
-| Property | Value |
+| Property | Specification |
 |---|---|
-| **Label** | Student Inquiry |
-| **Plural Label** | Student Inquiries |
-| **API Name / Object Name** | `Student_Inquiry__c` |
-| **Data Type** | Custom Object |
-| **Record Name** | `Inquiry_Number` |
-| **Record Name Data Type** | Auto Number |
-| **Display Format** | `INQ-{YYYY}-{0000}` (e.g., `INQ-2026-0001`) |
-| **Starting Number** | 1 |
-| **Description** | Tracks student inquiries, academic credentials, target programs, and enrollment progress. |
+| **Label** | Student Record |
+| **Plural Label** | Student Records |
+| **Object Name (API Name)** | `Student_Record__c` |
+| **Record Name Label** | Student Name |
+| **Record Name Data Type** | Text (Length: 80) |
+| **Description** | Stores individual student academic profiles, roll numbers, department enrollments, GPA metrics, and active lifecycle standing. |
 | **Deployment Status** | Deployed |
-| **Sharing Model** | Public Read/Write |
+| **Sharing Model** | Read/Write (Public Read/Write) |
+| **Allow Reports** | Enabled (Yes) |
+| **Allow Activities** | Enabled (Yes) |
+| **Track Field History** | Enabled (Yes) |
 
 ---
 
@@ -29,69 +29,72 @@ The application is deployed on Salesforce Lightning Platform to capture prospect
 
 ### 2.1 Standard & Identification Fields
 
-| Field Label | API Name | Data Type | Length / Format | Required | Description |
-|---|---|---|---|---|---|
-| Inquiry Number | `Name` | Auto Number | `INQ-{YYYY}-{0000}` | Yes | System-generated unique identifier for inquiry |
-| Owner | `OwnerId` | Lookup (User/Queue) | 18 chars | Yes | Assigned admissions counselor or queue |
-| Created By | `CreatedById` | Lookup (User) | 18 chars | Yes | Audit audit trail: creation user & timestamp |
-| Last Modified By | `LastModifiedById` | Lookup (User) | 18 chars | Yes | Audit trail: last modification user & timestamp |
-
-### 2.2 Applicant Personal & Contact Information
-
 | Field Label | API Name | Data Type | Properties | Description |
 |---|---|---|---|---|
-| First Name | `First_Name__c` | Text(50) | Required | Applicant's legal first name |
-| Last Name | `Last_Name__c` | Text(50) | Required | Applicant's legal surname |
-| Email Address | `Email__c` | Email | Unique, External ID | Primary communication email |
-| Contact Phone | `Phone__c` | Phone | — | Primary mobile or home contact number |
-| City | `City__c` | Text(60) | — | Current residential city |
-| State/Province | `State__c` | Text(60) | — | Current residential state/province |
+| Student Name | `Name` | Text(80) | Required | Full legal name of the student (Standard Record Name). |
+| Owner | `OwnerId` | Lookup (User, Group) | System Managed | Faculty advisor, registrar officer, or department admin owning the record. |
+| Created By | `CreatedById` | Lookup (User) | System Managed | Audit timestamp and user identity at record initialization. |
+| Last Modified By | `LastModifiedById` | Lookup (User) | System Managed | Audit timestamp and user identity of latest modification. |
 
-### 2.3 Academic Profile & Program Preferences
+### 2.2 Academic & Demographic Custom Fields
 
-| Field Label | API Name | Data Type | Picklist Values / Formula | Description |
-|---|---|---|---|---|
-| Target Degree Program | `Target_Degree__c` | Picklist | `B.Tech Computer Science`<br>`B.Tech AI & Data Science`<br>`B.Tech Cyber Security`<br>`M.Tech Cloud Computing`<br>`MCA` | Prospective academic program |
-| Preferred Intake | `Preferred_Intake__c` | Picklist | `Fall 2026`<br>`Spring 2027`<br>`Fall 2027` | Desired academic term for enrollment |
-| High School / Prior GPA | `High_School_GPA__c` | Percent(5, 2) | Range: `0.00%` – `100.00%` | Prior qualifying examination percentage |
-| Entrance Exam Score | `Entrance_Score__c` | Number(3, 0) | Range: `0` – `100` | Normalized institutional entrance test score |
-| Merit Scholarship Eligible | `Scholarship_Eligible__c` | Formula (Checkbox) | `IF(High_School_GPA__c >= 0.85, TRUE, FALSE)` | Evaluates eligibility for merit-based financial aid |
-
-### 2.4 Admission Lifecycle & Counseling
-
-| Field Label | API Name | Data Type | Picklist Values / Properties | Description |
-|---|---|---|---|---|
-| Inquiry Status | `Inquiry_Status__c` | Picklist | `New`<br>`Contacted`<br>`Counseling Scheduled`<br>`Application Submitted`<br>`Enrolled`<br>`Closed - Lost` | Current stage in the admissions pipeline |
-| Application Fee Paid | `Application_Fee_Paid__c` | Checkbox | Default: `FALSE` | Verifies non-refundable application fee payment |
-| Next Follow-Up Date | `Follow_Up_Date__c` | Date | — | Scheduled date for counselor follow-up call |
-| Counselor Notes | `Counselor_Notes__c` | Long Text Area(2000) | Visible Lines: 5 | Internal qualitative notes from counseling interactions |
+| Field Label | API Name | Data Type | Length / Decimals | Required / Unique | Description & Picklist Values |
+|---|---|---|---|---|---|
+| Roll Number | `Roll_Number__c` | Text | 20 | Required, Unique (Case-Insensitive) | Unique institutional identifier (e.g., `CS-2023-014`). Serves as External ID for SIS integration. |
+| Email | `Email__c` | Email | 80 | Required | Primary student institutional or personal email address used for academic correspondence. |
+| Course | `Course__c` | Picklist | — | Required | Academic degree program / engineering department. <br>Values: <br>• `Computer Engineering`<br>• `Information Technology`<br>• `Mechanical Engineering`<br>• `Civil Engineering`<br>• `Electronics & Telecommunication` |
+| Semester | `Semester__c` | Number | 2, 0 | Required | Current academic semester term (Valid range: 1 to 8). |
+| GPA | `GPA__c` | Number | 3, 2 | Required | Cumulative Grade Point Average evaluated on a 10.00 scale (Format: `0.00` – `10.00`). |
+| Status | `Status__c` | Picklist | — | Required | Current administrative standing of the student.<br>Values:<br>• `Active` (Default)<br>• `On Leave`<br>• `Graduated`<br>• `Dropped` |
+| Enrolment Date | `Enrolment_Date__c` | Date | — | Required | Official date of admission and registration into the institution. |
 
 ---
 
 ## 3. Validation Rules
 
-### VR01 — Valid GPA Range
-- **Rule Name**: `VR_GPA_Percentage_Range`
-- **Formula**:
+### VR01 — Cumulative GPA Range Constraint
+- **Rule Name**: `VR_GPA_Range`
+- **Active**: True
+- **Description**: Ensures entered Grade Point Average conforms to the institutional 10.00 scale. Rejects values below 0.00 or above 10.00.
+- **Error Condition Formula**:
   ```sql
-  OR(High_School_GPA__c < 0.0, High_School_GPA__c > 1.0)
+  OR(
+      GPA__c < 0.00,
+      GPA__c > 10.00
+  )
   ```
-- **Error Message**: *"High School GPA percentage must be between 0.00% and 100.00%."*
+- **Error Message**: *"GPA must be between 0.00 and 10.00."*
+- **Error Display Location**: Field: `GPA__c`
 
-### VR02 — Contact Method Mandatory
-- **Rule Name**: `VR_Email_Or_Phone_Required`
-- **Formula**:
+### VR02 — Semester Term Boundary Constraint
+- **Rule Name**: `VR_Semester_Range`
+- **Active**: True
+- **Description**: Restricts valid academic terms between Semester 1 and Semester 8.
+- **Error Condition Formula**:
   ```sql
-  AND(ISBLANK(Email__c), ISBLANK(Phone__c))
+  OR(
+      Semester__c < 1,
+      Semester__c > 8
+  )
   ```
-- **Error Message**: *"Either an Email Address or a Contact Phone number must be provided."*
+- **Error Message**: *"Semester must be between 1 and 8."*
+- **Error Display Location**: Field: `Semester__c`
 
 ---
 
-## 4. Lightning Page Layout Sections
+## 4. Lightning Page Layout Architecture
 
-1. **Header**: Inquiry Number, Inquiry Status badge, Target Degree, Scholarship Eligibility.
-2. **Student Contact Information**: First Name, Last Name, Email Address, Contact Phone, City, State.
-3. **Academic Evaluation**: Target Degree Program, Preferred Intake, High School GPA, Entrance Exam Score, Scholarship Eligible (Read-only Formula).
-4. **Admissions Workflow & Counseling**: Inquiry Status, Application Fee Paid, Next Follow-Up Date, Counselor Notes.
-5. **System Information**: Created By, Last Modified By, Owner.
+1. **Header Highlights Panel**:
+   - `Name` (Student Name)
+   - `Roll_Number__c`
+   - `Course__c`
+   - `GPA__c`
+   - `Status__c`
+2. **Student Identity & Enrolment Details**:
+   - Left Column: `Name`, `Roll_Number__c`, `Email__c`
+   - Right Column: `Enrolment_Date__c`, `Status__c`
+3. **Academic Performance & Progression**:
+   - Left Column: `Course__c`, `Semester__c`
+   - Right Column: `GPA__c`
+4. **System Audit Information**:
+   - Created By, Last Modified By, Record Owner
