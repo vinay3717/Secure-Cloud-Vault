@@ -1,5 +1,6 @@
 BUILD.md
 PREREQUISITES.md
+BUILD_SALESFORCE.md
 
 # Virtual environment & Python cache
 .venv/
@@ -10,4 +11,4 @@ __pycache__/
 # Security & Data (as instructed in PREREQUISITES.md)
 secret.key
 flask-secret.key
-files.json
+files.json
