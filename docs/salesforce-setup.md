@@ -1,164 +1,195 @@
 # Salesforce Lightning App Setup & Configuration Guide
 
 ## Application Overview
-- **App Name**: Admissions Cloud Management
-- **Developer Name**: `Admissions_Cloud_Management`
-- **Platform**: Salesforce Lightning Experience
-- **Primary Object**: `Student_Inquiry__c` (Student Inquiry)
-- **App Purpose**: Provides admissions officers and counselors with a consolidated cloud console to manage student leads, evaluate academic eligibility, track application funnels, and visualize admission KPIs via reports and dashboards.
+- **App Name**: Student Record Manager
+- **Developer Name**: `Student_Record_Manager`
+- **App Type**: Lightning App (Standard Navigation)
+- **Primary Object**: `Student_Record__c` (Student Record)
+- **Included Navigation Items**:
+  1. `Student Records` (`Student_Record__c` Custom Tab)
+  2. `Reports` (Standard Tab)
+  3. `Dashboards` (Standard Tab)
+- **Target Audience / Profiles**: System Administrator, Academic Registrar, Faculty Advisors, Department HODs.
+- **App Description**: A specialized cloud academic records solution built on Salesforce Lightning Experience for college administrators to track student enrolment, department allocation, term progression, and cumulative GPA analytics.
 
 ---
 
-## Step 1: Create Custom Object (`Student_Inquiry__c`)
+## Step 1: Create the Custom Object (`Student_Record__c`)
 
 1. Log into your Salesforce Developer Edition org (`https://login.salesforce.com`).
-2. Navigate to **Setup** (gear icon in the top right corner) → **Object Manager**.
-3. Click **Create** → **Custom Object**.
-4. Configure the Object Definition:
-   - **Label**: `Student Inquiry`
-   - **Plural Label**: `Student Inquiries`
-   - **Object Name**: `Student_Inquiry`
-   - **Record Name**: `Inquiry Number`
-   - **Data Type**: `Auto Number`
-   - **Display Format**: `INQ-{YYYY}-{0000}`
-   - **Starting Number**: `1`
-5. Under **Optional Features**, check:
-   - [x] *Allow Reports*
-   - [x] *Allow Activities*
-   - [x] *Track Field History*
-6. Under **Deployment Status**, select **Deployed**.
-7. Under **Object Creation Options**, check:
-   - [x] *Launch New Custom Tab Wizard after saving this custom object*.
-8. Click **Save**.
+2. Click the **Setup (Gear Icon)** in the top navigation bar and select **Setup**.
+3. Select the **Object Manager** tab at the top of the Setup page.
+4. Click **Create** (top right) → select **Custom Object**.
+5. Fill in the object definitions:
+   - **Label**: `Student Record`
+   - **Plural Label**: `Student Records`
+   - **Object Name**: `Student_Record`
+   - **Description**: *Central repository for student profiles, academic enrolment, term GPA, and active standing.*
+   - **Record Name**: `Student Name`
+   - **Data Type**: `Text`
+6. Under **Optional Features**, check the following boxes:
+   - [x] **Allow Reports** (required for academic reporting & dashboard widgets)
+   - [x] **Allow Activities** (for scheduling advisory sessions)
+   - [x] **Track Field History** (for auditing status and GPA adjustments)
+7. Under **Deployment Status**, ensure **Deployed** is selected.
+8. Under **Object Creation Options (Available only when first creating the Custom Object)**:
+   - [x] Check **Launch New Custom Tab Wizard after saving this custom object**.
+9. Click **Save**.
 
 ---
 
 ## Step 2: Configure the Custom Tab
 
-1. When the New Custom Tab Wizard opens:
-   - **Object**: `Student Inquiry`
-   - **Tab Style**: Select **Books**, **Student**, or **Diploma** (e.g., `Custom48: Trophy` or `Custom67: Gears`).
-   - **Description**: *Centralized directory for prospective student inquiries.*
-2. Click **Next** → keep Tab Visibility as **Default On** for all profiles → Click **Next**.
-3. Keep default custom app inclusion and click **Save**.
+1. The **New Custom Tab Wizard** will automatically open.
+2. Select the tab properties:
+   - **Object**: `Student Record`
+   - **Tab Style**: Select **Books** (`Custom48: Trophy` or `Custom62: Chalkboard` or `Custom67: Gears`).
+   - **Description**: *Tab interface providing direct access to student academic records.*
+3. Click **Next**.
+4. Set tab visibility: keep **Default On** for all profiles → Click **Next**.
+5. Keep default custom app inclusions and click **Save**.
 
 ---
 
-## Step 3: Add Custom Fields & Formulas
+## Step 3: Add Custom Fields & Relationships
 
-In **Object Manager** → select **Student Inquiry** → **Fields & Relationships** → **New**:
+In **Object Manager** → click **Student Record** → select **Fields & Relationships** → click **New**:
 
-1. **First Name**:
-   - Data Type: `Text` | Length: `50` | Field Label: `First Name` | Required: `Yes`
-2. **Last Name**:
-   - Data Type: `Text` | Length: `50` | Field Label: `Last Name` | Required: `Yes`
-3. **Email Address**:
-   - Data Type: `Email` | Field Label: `Email Address` | Unique: `Yes` | External ID: `Yes`
-4. **Phone**:
-   - Data Type: `Phone` | Field Label: `Contact Phone`
-5. **City & State**:
-   - Data Type: `Text(60)` for `City` and `State`
-6. **Target Degree Program**:
-   - Data Type: `Picklist` | Field Label: `Target Degree Program`
-   - Values (Enter values, with each value on its own line):
-     - `B.Tech Computer Science`
-     - `B.Tech AI & Data Science`
-     - `B.Tech Cyber Security`
-     - `M.Tech Cloud Computing`
-     - `MCA`
-7. **Preferred Intake**:
-   - Data Type: `Picklist` | Field Label: `Preferred Intake`
-   - Values: `Fall 2026`, `Spring 2027`, `Fall 2027`
-8. **High School / Prior GPA**:
-   - Data Type: `Percent` | Length: `3`, Decimals: `2` | Field Label: `High School GPA`
-9. **Entrance Score**:
-   - Data Type: `Number` | Length: `3`, Decimals: `0` | Field Label: `Entrance Score`
-10. **Merit Scholarship Eligible**:
-    - Data Type: `Formula` | Formula Return Type: `Checkbox`
-    - Formula:
-      ```sql
-      IF(High_School_GPA__c >= 0.85, TRUE, FALSE)
-      ```
-11. **Inquiry Status**:
-    - Data Type: `Picklist` | Field Label: `Inquiry Status`
-    - Values:
-      - `New` (Default)
-      - `Contacted`
-      - `Counseling Scheduled`
-      - `Application Submitted`
-      - `Enrolled`
-      - `Closed - Lost`
-12. **Application Fee Paid**:
-    - Data Type: `Checkbox` | Default: `Unchecked`
-13. **Follow-Up Date**:
-    - Data Type: `Date` | Field Label: `Next Follow-Up Date`
-14. **Counselor Notes**:
-    - Data Type: `Long Text Area` | Length: `2000` | Visible Lines: `5`
+### Field 1: Roll Number
+- **Data Type**: `Text`
+- **Field Label**: `Roll Number`
+- **Length**: `20`
+- **Field Name**: `Roll_Number`
+- **Required**: Check [x] *Always require a value in this field in order to save a record*
+- **Unique**: Check [x] *Do not allow duplicate values* → Select *Treat "ABC" and "abc" as duplicate values (case-insensitive)*
+- **External ID**: Check [x] *Set this field as the unique record identifier from an external system*
+- Click **Next** → **Next** → **Save & New**.
+
+### Field 2: Email
+- **Data Type**: `Email`
+- **Field Label**: `Email`
+- **Field Name**: `Email`
+- **Required**: Check [x] *Always require a value in this field*
+- Click **Next** → **Next** → **Save & New**.
+
+### Field 3: Course
+- **Data Type**: `Picklist`
+- **Field Label**: `Course`
+- **Field Name**: `Course`
+- Select **Enter values, with each value on its own line**:
+  ```text
+  Computer Engineering
+  Information Technology
+  Mechanical Engineering
+  Civil Engineering
+  Electronics & Telecommunication
+  ```
+- **Required**: Check [x] *Always require a value in this field*
+- Click **Next** → **Next** → **Save & New**.
+
+### Field 4: Semester
+- **Data Type**: `Number`
+- **Field Label**: `Semester`
+- **Length**: `2`, **Decimal Places**: `0`
+- **Field Name**: `Semester`
+- **Required**: Check [x] *Always require a value in this field*
+- Click **Next** → **Next** → **Save & New**.
+
+### Field 5: GPA
+- **Data Type**: `Number`
+- **Field Label**: `GPA`
+- **Length**: `3`, **Decimal Places**: `2`
+- **Field Name**: `GPA`
+- **Required**: Check [x] *Always require a value in this field*
+- Click **Next** → **Next** → **Save & New**.
+
+### Field 6: Status
+- **Data Type**: `Picklist`
+- **Field Label**: `Status`
+- **Field Name**: `Status`
+- Select **Enter values, with each value on its own line**:
+  ```text
+  Active
+  On Leave
+  Graduated
+  Dropped
+  ```
+- Set default value to **Active**.
+- **Required**: Check [x] *Always require a value in this field*
+- Click **Next** → **Next** → **Save & New**.
+
+### Field 7: Enrolment Date
+- **Data Type**: `Date`
+- **Field Label**: `Enrolment Date`
+- **Field Name**: `Enrolment_Date`
+- **Required**: Check [x] *Always require a value in this field*
+- Click **Next** → **Next** → **Save**.
 
 ---
 
-## Step 4: Create the Lightning Application
+## Step 4: Configure the Validation Rule (`VR_GPA_Range`)
 
-1. In **Setup**, enter `App Manager` in the Quick Find box and select **App Manager**.
-2. Click **New Lightning App**.
+1. In **Object Manager** → select **Student Record**.
+2. In the left navigation sidebar, scroll down and click **Validation Rules**.
+3. Click **New** (top right).
+4. Configure the rule parameters:
+   - **Rule Name**: `VR_GPA_Range`
+   - **Active**: Check [x]
+   - **Description**: *Validates that GPA is strictly within the academic range of 0.00 to 10.00.*
+   - **Error Condition Formula**:
+     ```sql
+     OR(
+         GPA__c < 0.00,
+         GPA__c > 10.00
+     )
+     ```
+   - **Error Message**: `GPA must be between 0.00 and 10.00.`
+   - **Error Location**: Select **Field** → `GPA`.
+5. Click **Save**.
+
+---
+
+## Step 5: Build the Lightning App ("Student Record Manager")
+
+1. From **Setup**, in the Quick Find search box on the left, type `App Manager` and select **App Manager**.
+2. Click **New Lightning App** (top right).
 3. **App Details & Branding**:
-   - **App Name**: `Admissions Cloud Management`
-   - **Developer Name**: `Admissions_Cloud_Management`
-   - **Description**: *Admissions inquiry tracking, applicant evaluation, and enrollment dashboard.*
-   - **Primary Color Hex Value**: `#6366F1` (Indigo accent)
-4. Click **Next** → **App Options**: Standard navigation, Desktop and phone support.
-5. Click **Next** → **Utility Items**: Add `Recent Items` and `Notes` (optional).
+   - **App Name**: `Student Record Manager`
+   - **Developer Name**: `Student_Record_Manager`
+   - **Description**: *Academic management console for tracking student registrations, courses, semester progression, and GPA metrics.*
+   - **Primary Color Hex**: `#1E88E5` (Salesforce Blue)
+   - Click **Next**.
+4. **App Options**:
+   - **Navigation Style**: Standard Navigation
+   - **Supported Form Factors**: Desktop and Phone
+   - Click **Next**.
+5. **Utility Items (Desktop Only)**:
+   - Keep default (none required) → Click **Next**.
 6. **Navigation Items**:
-   - Move the following to **Selected Items**:
-     1. `Home`
-     2. `Student Inquiries`
-     3. `Reports`
-     4. `Dashboards`
-7. **User Profiles**: Assign to `System Administrator` (and relevant Counselor profiles).
+   - In the **Available Items** column, select and move the following to **Selected Items**:
+     1. `Student Records` (Custom Tab)
+     2. `Reports` (Standard Tab)
+     3. `Dashboards` (Standard Tab)
+   - Click **Next**.
+7. **User Profiles**:
+   - Select and move **System Administrator** and **Standard User** to **Selected Profiles**.
 8. Click **Save & Finish**.
 
 ---
 
-## Step 5: Configure Lightning Record Page & Path
+## Step 6: Customize the Page Layout
 
-1. Open the **App Launcher** (9-dot icon on top left) → select **Admissions Cloud Management**.
-2. Click on the **Student Inquiries** tab → Click **New** to create a dummy record.
-3. On the record page, click the **Setup** gear icon → select **Edit Page** to open the **Lightning App Builder**.
-4. Drag and drop the **Path** component above the record detail.
-   - Configure Path on `Inquiry_Status__c` so counselors can click through stages:
-     `New` ➔ `Contacted` ➔ `Counseling Scheduled` ➔ `Application Submitted` ➔ `Enrolled`.
-5. Add a **Highlights Panel** at the top with key metrics (Status, Program, Scholarship eligibility).
-6. Click **Save** and **Activate** (Assign as Org Default for Desktop & Phone).
+1. In **Object Manager** → **Student Record** → **Page Layouts** → click **Student Record Layout**.
+2. Organize the fields into logical sections:
+   - **Student Identity & Registration**: `Student Name`, `Roll Number`, `Email`, `Enrolment Date`, `Status`.
+   - **Academic Details & Performance**: `Course`, `Semester`, `GPA`.
+   - **System Information**: `Owner`, `Created By`, `Last Modified By`.
+3. Click **Save**.
 
 ---
 
-## Step 6: Create Analytical Reports
+## Step 7: Launch the Application
 
-### Report 1: Admissions Pipeline by Status & Program
-1. Go to **Reports** tab → Click **New Report**.
-2. Choose Report Type: **Student Inquiries** → Click **Start Report**.
-3. **Grouping**:
-   - Group Rows by: `Inquiry Status`
-   - Group Columns by: `Target Degree Program`
-4. **Columns**: Add `First Name`, `Last Name`, `High School GPA`, `Entrance Score`, `Scholarship Eligible`.
-5. Add Chart: Toggle **Chart On** → Select **Stacked Column Chart** or **Donut Chart**.
-6. Click **Save & Run** → Name: `Admissions Pipeline by Status`.
-
-### Report 2: Merit Scholarship Candidates
-1. Go to **Reports** tab → Click **New Report** (Report Type: `Student Inquiries`).
-2. Add Filter: `Scholarship Eligible EQUALS True`.
-3. Columns: `Inquiry Number`, `Full Name`, `Target Degree`, `High School GPA`, `Email`.
-4. Click **Save & Run** → Name: `Merit Scholarship Eligible Inquiries`.
-
----
-
-## Step 7: Build the Executive Admissions Dashboard
-
-1. Navigate to the **Dashboards** tab → Click **New Dashboard**.
-2. **Dashboard Name**: `Admissions Operations Executive Dashboard`.
-3. Add Components:
-   - **Component 1 (Pipeline Funnel)**: Source Report: *Admissions Pipeline by Status* | Display as: **Funnel Chart** showing count across inquiry stages.
-   - **Component 2 (Program Demand)**: Source Report: *Admissions Pipeline by Status* | Display as: **Donut Chart** categorized by *Target Degree Program*.
-   - **Component 3 (Enrolled KPI Metric)**: Source Report: *Admissions Pipeline by Status* | Filter: `Status = Enrolled` | Display as: **Metric Gauge** (Target: 50 enrolled).
-   - **Component 4 (Scholarship Qualified Table)**: Source Report: *Merit Scholarship Eligible Inquiries* | Display as: **Lightning Lightning Table**.
-4. Click **Save** and **Done**.
+1. Click the **App Launcher** (9 dots icon in the top left header).
+2. Type `Student Record Manager` and click the application card.
+3. The Lightning App opens with the three primary tabs: `Student Records`, `Reports`, and `Dashboards`.
